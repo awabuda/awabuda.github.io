@@ -1,0 +1,1600 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+  
+
+<link href="//cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="js,node,小程序,ts" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Hermes Agent 核心实现：工程师为什么这么做 本文不列功能清单，只回答一个问题：面对具体的**工程约束**，Hermes 的作者为什么做了这个选择而不是那个选择。每一节先给结论，再讲问题背景，再讲实现细节。   一、为什么 AIAgent 是同步的，明明 Python 有 async结论：agent 主循环天然是串行的，async 在这里不带来任何并发收益，只增加复杂度和 bug 风险。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="十四、工程师为什么这么做">
+<meta property="og:url" content="http://yoursite.com/books/hermes/14-%E5%B7%A5%E7%A8%8B%E5%B8%88%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E4%B9%88%E5%81%9A/index.html">
+<meta property="og:site_name" content="悟凌斋">
+<meta property="og:description" content="Hermes Agent 核心实现：工程师为什么这么做 本文不列功能清单，只回答一个问题：面对具体的**工程约束**，Hermes 的作者为什么做了这个选择而不是那个选择。每一节先给结论，再讲问题背景，再讲实现细节。   一、为什么 AIAgent 是同步的，明明 Python 有 async结论：agent 主循环天然是串行的，async 在这里不带来任何并发收益，只增加复杂度和 bug 风险。">
+<meta property="article:published_time" content="2026-05-25T06:35:19.644Z">
+<meta property="article:modified_time" content="2026-05-25T06:35:19.644Z">
+<meta property="article:author" content="awabuda">
+<meta property="article:tag" content="博客">
+<meta property="article:tag" content="js">
+<meta property="article:tag" content="前端">
+<meta property="article:tag" content="node">
+<meta property="article:tag" content="vue">
+<meta property="article:tag" content="react">
+<meta property="article:tag" content="koa">
+<meta property="article:tag" content="算法">
+<meta property="article:tag" content="css">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/books/hermes/14-工程师为什么这么做/"/>
+
+
+
+
+
+  <title>十四、工程师为什么这么做 | 悟凌斋</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?b376e3ef6e386ad73d4f7661ebfc0d25";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">悟凌斋</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">一行代码翘起整个前端</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+	<h2 class="post-title" itemprop="name headline">十四、工程师为什么这么做</h2>
+
+
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+        
+          <h1 id="Hermes-Agent-核心实现：工程师为什么这么做"><a href="#Hermes-Agent-核心实现：工程师为什么这么做" class="headerlink" title="Hermes Agent 核心实现：工程师为什么这么做"></a>Hermes Agent 核心实现：工程师为什么这么做</h1><blockquote>
+<p>本文不列功能清单，只回答一个问题：<strong>面对具体的**</strong>工程约束<strong>**，Hermes 的作者为什么做了这个选择而不是那个选择</strong>。每一节先给结论，再讲问题背景，再讲实现细节。</p>
+</blockquote>
+<hr>
+<h2 id="一、为什么-AIAgent-是同步的，明明-Python-有-async"><a href="#一、为什么-AIAgent-是同步的，明明-Python-有-async" class="headerlink" title="一、为什么 AIAgent 是同步的，明明 Python 有 async"></a>一、为什么 AIAgent 是同步的，明明 Python 有 async</h2><p><strong>结论：agent 主循环天然是串行的，async 在这里不带来任何并发收益，只增加复杂度和 bug 风险。</strong></p>
+<p>先想清楚一件事：LLM agent 的核心循环长这样——</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">调用模型 → 等结果 → 解析工具调用 → 执行工具 → 把结果喂给模型 → 再调用模型</span><br></pre></td></tr></table></figure>
+
+<p>这个循环每一步都必须等上一步完成，不存在可以”同时做”的工作。<code>async/await</code> 的价值在于”等 IO 的时候去做别的事”，但这里根本没有”别的事”可做，因为下一步的输入依赖上一步的输出。</p>
+<p>但 Hermes 还有另一个约束：它需要同时支持 CLI 和 Gateway 两种入口。</p>
+<p>CLI 是 Python 主线程，没有 event loop，代码里大量用了 <code>subprocess.run()</code>、<code>sqlite3</code>、<code>os.path.exists()</code> 这类同步阻塞 API。Gateway 是 asyncio event loop 驱动，消息通过 <code>await</code> 接收，agent 在独立线程里运行。</p>
+<p>如果 <code>AIAgent</code> 是 async 的：</p>
+<ul>
+<li>CLI 需要用 <code>asyncio.run()</code> 包一层，但 <code>asyncio.run()</code> 内部不能调用同步阻塞函数——那会阻塞唯一的 event loop，终端卡死</li>
+<li>要解决这个问题就要把所有工具改成 async，工作量巨大，且同步 subprocess 的 async 化本质上只是 <code>loop.run_in_executor()</code>，还是线程池，绕了一圈回到原点</li>
+</ul>
+<p>Hermes 的解法是：<strong>编排层保持同步，只在真正需要 async 的地方做桥接</strong>。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># model_tools.py:81 — 全局唯一的 sync→async 入口</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">_run_async</span><span class="params">(coro)</span>:</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        loop = asyncio.get_running_loop()</span><br><span class="line">    <span class="keyword">except</span> RuntimeError:</span><br><span class="line">        loop = <span class="literal">None</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> loop <span class="keyword">and</span> loop.is_running():</span><br><span class="line">        <span class="comment"># 路径A：Gateway 场景——已有 event loop 在跑</span></span><br><span class="line">        <span class="comment"># 不能在当前线程的 loop 上 run_until_complete（那个 loop 正在运行）</span></span><br><span class="line">        <span class="comment"># 解法：新开线程，让 asyncio.run() 创建自己的 loop</span></span><br><span class="line">        <span class="keyword">with</span> concurrent.futures.ThreadPoolExecutor(max_workers=<span class="number">1</span>) <span class="keyword">as</span> pool:</span><br><span class="line">            <span class="keyword">return</span> pool.submit(asyncio.run, coro).result()</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="comment"># 路径B/C：CLI 主线程或 worker 线程——无 event loop</span></span><br><span class="line">        <span class="comment"># 不用 asyncio.run()，用持久 loop</span></span><br><span class="line">        loop = _get_or_create_persistent_loop()</span><br><span class="line">        <span class="keyword">return</span> loop.run_until_complete(coro)</span><br></pre></td></tr></table></figure>
+
+<p>路径B 为什么不用 <code>asyncio.run()</code> 而是持久 loop？因为 <code>asyncio.run()</code> 每次都创建然后销毁一个 event loop。<code>httpx</code>、<code>AsyncOpenAI</code> 这类异步客户端在 GC 阶段清理时会尝试调用 loop，发现 loop 已关闭，抛出 <code>&quot;Event loop is closed&quot;</code> 警告甚至异常。持久 loop 通过 <code>threading.local()</code> 绑定到当前线程，创建一次复用到底。</p>
+<p>这个设计带来了一个清晰的结构：<code>**_run_async()**</code>** 是全仓库 sync→async 调用的唯一入口**，Browser tool（Playwright）、MCP tool 的异步调用全都走这一个函数。新增异步工具只要调用 <code>_run_async()</code>，不需要了解自己运行在哪个上下文。</p>
+<hr>
+<h2 id="二、为什么-run-agent-py-有上万行而不拆分成多个文件"><a href="#二、为什么-run-agent-py-有上万行而不拆分成多个文件" class="headerlink" title="二、为什么 run_agent.py 有上万行而不拆分成多个文件"></a>二、为什么 run_agent.py 有上万行而不拆分成多个文件</h2><p><strong>结论：这不是懒，是刻意的。拆分会让”哪段代码控制哪个状态”变得模糊，出 bug 时更难追踪。</strong></p>
+<p><code>AIAgent.__init__()</code> 有 45+ 个参数，初始化代码超过 700 行，整个文件将近 12,000 行。第一眼看很反直觉，但作者的逻辑很清楚：</p>
+<p>agent 的主循环需要访问极其多的状态——当前的 token 使用量、iteration budget、conversation history、压缩器实例、memory store、工具列表、callback 集合、provider fallback 链……这些状态如果分散在多个类和文件里，每个方法调用都要跨边界传参或持有引用，任何一个状态不同步就会产生 bug，而且调试时你要在多个文件之间跳来跳去才能还原完整状态。</p>
+<p>把所有东西放在一个类里，所有方法都直接访问 <code>self</code>，状态是单一的、可见的。代码量虽大，但每个状态在哪、被谁修改，是可以通过搜索直接找到的。</p>
+<p>已经从 <code>run_agent.py</code> 拆出去的模块都有共同特征：<strong>它们的逻辑是相对独立的，和主循环之间的接口是清晰的</strong>。比如 <code>prompt_builder.py</code>（组装 system prompt）、<code>context_compressor.py</code>（压缩算法）、<code>prompt_caching.py</code>（Anthropic cache 标记）。这些模块接收输入、返回结果，不持有主循环的状态。</p>
+<p>留在 <code>run_agent.py</code> 里的是那些”本质上是主循环的一部分”的代码——fallback 切换、budget 耗尽处理、工具执行的分发逻辑。这些代码如果拆出去，拆出去的类就需要持有 <code>AIAgent</code> 实例的引用，等于变相绕了一圈。</p>
+<hr>
+<h2 id="三、IterationBudget-的三个设计细节：为什么这么不简单"><a href="#三、IterationBudget-的三个设计细节：为什么这么不简单" class="headerlink" title="三、IterationBudget 的三个设计细节：为什么这么不简单"></a>三、IterationBudget 的三个设计细节：为什么这么不简单</h2><p><strong>结论：一个看似只是”计数器”的类，解决了三个不同的工程问题。</strong></p>
+<p>表面上 <code>IterationBudget</code> 只是个带 lock 的计数器。但细看实现，每一个细节都有具体原因：</p>
+<p><strong>细节一：为什么用显式 **`</strong>threading.Lock()<strong>`</strong>，CPython 的 GIL 不够吗？**</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># run_agent.py:168</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">IterationBudget</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">consume</span><span class="params">(self)</span> -&gt; bool:</span></span><br><span class="line">        <span class="keyword">with</span> self._lock:</span><br><span class="line">            <span class="keyword">if</span> self._used &gt;= self.max_total:  <span class="comment"># 读</span></span><br><span class="line">                <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line">            self._used += <span class="number">1</span>                    <span class="comment"># 写</span></span><br><span class="line">            <span class="keyword">return</span> <span class="literal">True</span></span><br></pre></td></tr></table></figure>
+
+<p>GIL 保证单个字节码的原子性，但 <code>consume()</code> 是”读取→比较→写入”三个步骤的组合。在两个线程同时调用 <code>consume()</code> 时，GIL 可能在”读”和”写”之间切换线程，导致两个线程都读到”还有余量”，然后都写入，budget 超支。显式锁保证这三步是原子的。</p>
+<p><strong>细节二：</strong><code>**refund()**</code>** 方法——为什么某些工具调用不消耗 budget？**</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">refund</span><span class="params">(self)</span> -&gt; <span class="keyword">None</span>:</span></span><br><span class="line">    <span class="keyword">with</span> self._lock:</span><br><span class="line">        <span class="keyword">if</span> self._used &gt; <span class="number">0</span>:</span><br><span class="line">            self._used -= <span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p><code>execute_code</code> 工具被调用时会退还一次 budget。背后的逻辑是：budget 的本质是”模型思考和决策的次数”，<code>execute_code</code> 只是运行了一段程序，没有经过模型推理——它是确定性的、机械的。如果把它和真正的”模型决策循环”等同计费，会导致包含大量代码执行的任务比实际更快耗尽 budget，强迫模型在代码还没跑完就急着收尾。</p>
+<p><strong>细节三：70%/90% 两级压力预警——为什么不直接在 100% 时停止？</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># run_agent.py:648</span></span><br><span class="line">self._budget_caution_threshold = <span class="number">0.7</span>   <span class="comment"># 70% —— 开始提醒收尾</span></span><br><span class="line">self._budget_warning_threshold  = <span class="number">0.9</span>  <span class="comment"># 90% —— 紧急，立刻响应</span></span><br></pre></td></tr></table></figure>
+
+<p>预警不是单独的 system message（那样会破坏 user/assistant/tool 的消息交替顺序，导致 API 报错），而是嵌入在工具结果的 JSON 里：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"result"</span>: <span class="string">"..."</span>,</span><br><span class="line">  <span class="attr">"_budget_warning"</span>: <span class="string">"URGENT: Only 9 iterations remaining. Wrap up now."</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>模型在读取工具结果时自然看到这段信息，不产生额外的消息对。为什么分两级？70% 时提示”开始考虑收尾”，模型通常能在剩余的 30% 里平稳落地；90% 时提示”现在必须响应”，防止模型在最后几次迭代里还在调用不必要的工具。单级提示太晚，模型来不及优雅收束；单级提示太早，会导致模型在任务还没完成时就停下来。</p>
+<hr>
+<h2 id="四、为什么工具并发用-ThreadPoolExecutor-而不是-asyncio-gather"><a href="#四、为什么工具并发用-ThreadPoolExecutor-而不是-asyncio-gather" class="headerlink" title="四、为什么工具并发用 ThreadPoolExecutor 而不是 asyncio.gather"></a>四、为什么工具并发用 ThreadPoolExecutor 而不是 asyncio.gather</h2><p><strong>结论：Hermes 的工具大部分是同步阻塞的，在 async context 里跑同步代码需要 **`</strong>run_in_executor()<strong>`</strong>，本质还是线程池，中间多一层抽象没有意义。**</p>
+<p>当模型在一次响应里返回多个工具调用，Hermes 用 ThreadPoolExecutor 并发执行：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># run_agent.py:235</span></span><br><span class="line">_MAX_TOOL_WORKERS = <span class="number">8</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># run_agent.py:6144</span></span><br><span class="line">max_workers = min(num_tools, _MAX_TOOL_WORKERS)</span><br><span class="line"><span class="keyword">with</span> concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) <span class="keyword">as</span> executor:</span><br><span class="line">    futures = [executor.submit(_run_tool, i, tc, name, args)</span><br><span class="line">               <span class="keyword">for</span> i, (tc, name, args) <span class="keyword">in</span> enumerate(parsed_calls)]</span><br><span class="line">    concurrent.futures.wait(futures)</span><br></pre></td></tr></table></figure>
+
+<p><code>_MAX_TOOL_WORKERS = 8</code> 这个数字本身也是经过调优的。太小（比如 2）意味着多个 <code>terminal.execute()</code> 无法真正并行；太大（比如 32）每个线程可能持有自己的 subprocess、event loop、文件描述符，内存和句柄压力过高。8 对应”典型模型输出 2-5 个并行工具调用”的场景。</p>
+<p>还有一个经常被忽视的细节：<strong>并发执行，顺序回填</strong>。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 等所有工具执行完</span></span><br><span class="line">concurrent.futures.wait(futures)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 结果按原始 tool call 的顺序回填到 history</span></span><br><span class="line"><span class="keyword">for</span> i, future <span class="keyword">in</span> enumerate(futures):</span><br><span class="line">    results[i] = future.result()</span><br></pre></td></tr></table></figure>
+
+<p>为什么要保持顺序？因为 LLM API 的消息结构要求 tool result 的 <code>tool_call_id</code> 和对应的 tool call 一一对应，且顺序要匹配。如果按完成先后顺序回填，API 可能因为顺序不一致而拒绝请求。</p>
+<hr>
+<h2 id="五、Gateway-会话状态为什么从-os-environ-迁移到-contextvars"><a href="#五、Gateway-会话状态为什么从-os-environ-迁移到-contextvars" class="headerlink" title="五、Gateway 会话状态为什么从 os.environ 迁移到 contextvars"></a>五、Gateway 会话状态为什么从 os.environ 迁移到 contextvars</h2><p><strong>结论：os.environ 是进程全局的，多个并发会话共享同一个 namespace，后写的值会覆盖先写的值。</strong></p>
+<p>早期版本用 <code>os.environ</code> 传递会话上下文：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 旧代码（已移除）</span></span><br><span class="line">os.environ[<span class="string">"HERMES_SESSION_THREAD_ID"</span>] = str(context.source.thread_id)</span><br></pre></td></tr></table></figure>
+
+<p>这在单会话场景下没问题。但 Gateway 同时处理多个平台的消息——用户 A 发来一条消息，用户 B 在同一毫秒也发来一条。两个 agent 实例在不同线程运行，都往同一个 <code>os.environ</code> 写入自己的 <code>THREAD_ID</code>，互相覆盖，结果 A 的工具调用结果被发送到 B 的聊天窗口。</p>
+<p>修复方案是 <code>contextvars.ContextVar</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># gateway/session_context.py</span></span><br><span class="line">_SESSION_THREAD_ID: ContextVar[str] = ContextVar(<span class="string">"HERMES_SESSION_THREAD_ID"</span>, default=<span class="string">""</span>)</span><br></pre></td></tr></table></figure>
+
+<p><code>ContextVar</code> 是任务局部的——每个 asyncio task（以及它派生的线程）有自己的值副本，并发的会话之间天然隔离，不需要任何锁。</p>
+<p>这个修复还有一个细节：<code>set_session_vars()</code> 返回 reset tokens，handler 在 <code>finally</code> 块里用这些 tokens 还原旧值，防止值泄漏到后续的 task 复用场景。同时 <code>get_session_env()</code> 先查 ContextVar，查不到再 fallback 到 <code>os.environ</code>——这让 CLI 和 cron 等非并发场景（它们仍然用环境变量传值）完全不需要改动。</p>
+<p>这是一个很典型的”用对了并发原语”的 fix：问题不在于缺少锁，而在于用了进程级作用域来存储应该是任务级作用域的状态。</p>
+<hr>
+<h2 id="六、为什么上下文压缩分两层，而不是统一一个阈值"><a href="#六、为什么上下文压缩分两层，而不是统一一个阈值" class="headerlink" title="六、为什么上下文压缩分两层，而不是统一一个阈值"></a>六、为什么上下文压缩分两层，而不是统一一个阈值</h2><p><strong>结论：两层的触发条件和数据来源不同，强行合并会在 Gateway 长会话场景下导致每轮都触发压缩。</strong></p>
+<p>两层是：</p>
+<ul>
+<li><strong>Agent ContextCompressor（50%）</strong>：在 agent 工具循环内运行，能拿到 API 返回的精确 token 数</li>
+<li><strong>Gateway Session Hygiene（85%）</strong>：在 agent 处理消息之前运行，只能用字符数粗估 token</li>
+</ul>
+<p>如果把 Gateway 层的阈值也设为 50%，会出现这个问题：Telegram/Discord 这类平台，用户可能整晚都在和 agent 对话，消息在不处理的时候继续积累。等第二天第一条消息进来时，Gateway 检查一下历史，超 50% 了，压缩一次。然后 agent 开始处理，agent 内部又检查，又超 50%，又压缩一次。一条消息触发两次压缩，而且 Gateway 层用的是粗估值，压缩边界不准。</p>
+<p>把 Gateway 层设为 85%，它的定位就变成了”兜底防止 API 报错”，只在历史真的快撑满 context window 的时候才介入；50% 的 Agent 层负责日常的、精准的压缩。两层各司其职，没有重叠。</p>
+<hr>
+<h2 id="七、压缩算法里-protect-first-n-是硬编码的-3，为什么不让用户配置"><a href="#七、压缩算法里-protect-first-n-是硬编码的-3，为什么不让用户配置" class="headerlink" title="七、压缩算法里 protect_first_n 是硬编码的 3，为什么不让用户配置"></a>七、压缩算法里 protect_first_n 是硬编码的 3，为什么不让用户配置</h2><p><strong>结论：前 3 条消息（system prompt + 首轮对话）建立了整个会话的意图和上下文，如果这部分被压缩掉，摘要就会丢失”这个任务是什么”的信息，后续的重建都是错的。</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># agent/context_compressor.py:67</span></span><br><span class="line">protect_first_n = <span class="number">3</span>  <span class="comment"># hardcoded，不在配置里暴露</span></span><br></pre></td></tr></table></figure>
+
+<p>消息结构通常是：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[0] system: &quot;你是 Hermes，你的目标是...&quot;</span><br><span class="line">[1] user:   &quot;帮我重构这个项目的认证模块&quot;</span><br><span class="line">[2] assistant: &quot;好的，我先了解一下现有代码结构...&quot;</span><br></pre></td></tr></table></figure>
+
+<p>第 0 条是 system prompt，第 1 条是用户的原始请求，第 2 条是 agent 的首次响应——这三条建立了”整个任务的上下文”。如果这三条被压缩进摘要，摘要里会有类似”用户让 agent 重构认证模块”的表述，但失去了原始请求的措辞，也失去了 system prompt 里的人格设定和约束条件。后续 re-compression 更新摘要时，这些信息只会越来越模糊。</p>
+<p><code>protect_last_n</code> 是可配置的（默认 20），因为”最近多少条是活跃上下文”确实因任务性质不同而变化。但”首次建立的意图”是普遍重要的，硬编码反而是在防止错误配置。</p>
+<hr>
+<h2 id="八、子-Agent-的-Budget-为什么独立，而不是从父-Agent-扣"><a href="#八、子-Agent-的-Budget-为什么独立，而不是从父-Agent-扣" class="headerlink" title="八、子 Agent 的 Budget 为什么独立，而不是从父 Agent 扣"></a>八、子 Agent 的 Budget 为什么独立，而不是从父 Agent 扣</h2><p><strong>结论：子 Agent 干的事和父 Agent 干的事在性质上是平行的，不是包含关系。共享 budget 会导致父 Agent 因为子 Agent 的工作量而提前截停自己的主任务。</strong></p>
+<p>直觉上，”父有 90 次，生了个子，子用了 20 次，父只剩 70 次”看起来很合理——整个任务的总计算量有上限。但实际场景是：</p>
+<p>父 Agent 的任务是”重构整个项目”，它委派子 Agent 去并行处理三个子模块。子 Agent 各自需要 30-40 次迭代。如果用共享 budget，父 Agent 派出三个子 Agent 之后自己基本没有余量了，没办法综合子 Agent 的结果、处理冲突、做最终的整合工作。</p>
+<p>独立 budget 的逻辑是：子 Agent 是父 Agent 的工具调用，一次 <code>delegate_task</code> 在父 Agent 的视角里只算一次迭代（委派出去然后拿回结果）。子 Agent 内部跑了多少次，和父 Agent 的工作深度无关。</p>
+<p>代码层面，子 Agent 在 spawn 时创建全新的 <code>IterationBudget</code> 实例，不接受父 Agent 的 budget 传入：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># delegate_tool.py（子 Agent 创建）</span></span><br><span class="line">child_agent = AIAgent(</span><br><span class="line">    ...</span><br><span class="line">    iteration_budget=<span class="literal">None</span>,            <span class="comment"># 不传父的 budget</span></span><br><span class="line">    max_iterations=delegation_config.max_iterations,  <span class="comment"># 默认 50</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>如果用户想要整体上限，可以通过减小 <code>delegation.max_iterations</code> 或者限制同时运行的子 Agent 数量（<code>MAX_CONCURRENT_CHILDREN = 3</code>）来间接控制总计算量。</p>
+<hr>
+<h2 id="九、SQLite-为什么用-jitter-retry-而不是用数据库级锁等待"><a href="#九、SQLite-为什么用-jitter-retry-而不是用数据库级锁等待" class="headerlink" title="九、SQLite 为什么用 jitter retry 而不是用数据库级锁等待"></a>九、SQLite 为什么用 jitter retry 而不是用数据库级锁等待</h2><p><strong>结论：SQLite 内置的 busy handler 使用固定退避，多个 writer 会以相同节奏醒来然后同时抢锁，产生 convoy effect。随机 jitter 打散重试时机，从根本上避免这个问题。</strong></p>
+<p>Hermes 的场景：Gateway 同时处理多条平台消息，多个 agent 线程可能同时写 <code>state.db</code>。SQLite 的 WAL 模式允许并发读，但写是串行的。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># hermes_state.py:115</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SessionDB</span>:</span></span><br><span class="line">    _WRITE_MAX_RETRIES    = <span class="number">15</span></span><br><span class="line">    _WRITE_RETRY_MIN_S    = <span class="number">0.020</span>  <span class="comment"># 20ms</span></span><br><span class="line">    _WRITE_RETRY_MAX_S    = <span class="number">0.150</span>  <span class="comment"># 150ms</span></span><br><span class="line">    _CHECKPOINT_EVERY_N_WRITES = <span class="number">50</span></span><br></pre></td></tr></table></figure>
+
+<p>SQLite 自己的 <code>timeout</code> 参数让数据库等待指定时间后报错，内部用的是固定间隔轮询（busy handler）。想象三个 writer 同时来抢锁，一个拿到了，另外两个被 busy handler 挡回去，等 100ms，然后<strong>同时</strong>再来——每次都是同时，一直 convoy。</p>
+<p>jitter（随机 20-150ms）让这三个 writer 醒来的时间彼此错开，每次只有一个在锁竞争窗口内，其他两个错开了，自然排队。</p>
+<p>另一个细节：为什么用 <code>BEGIN IMMEDIATE</code> 而不是默认的 <code>BEGIN</code>？</p>
+<p>默认 <code>BEGIN</code> 的模式是”推迟加锁”——开始事务时不加写锁，直到真正执行第一次写操作时才加。如果两个事务都开始了，第一个执行写操作时另一个才发现拿不到锁，但第一个已经做了一部分工作，只能回滚重做。</p>
+<p><code>BEGIN IMMEDIATE</code> 在事务开始时就加写锁。失败就失败，没有做了一半再回滚的浪费。结合 jitter，失败→等随机时间→重试，这个循环比”开始-做了一半-发现锁冲突-回滚-重来”效率高得多。</p>
+<p>WAL checkpoint 每 50 次写入触发一次，用 <code>PASSIVE</code> 模式——只刷当前没有读者需要的 frames，不阻塞任何进行中的读取。这防止 WAL 文件在 Gateway 长期运行时无限增长，但不引入额外的写入延迟。</p>
+<hr>
+<h2 id="十、为什么-Prompt-Cache-只打系统提示词和最近-3-条消息，不打全部历史"><a href="#十、为什么-Prompt-Cache-只打系统提示词和最近-3-条消息，不打全部历史" class="headerlink" title="十、为什么 Prompt Cache 只打系统提示词和最近 3 条消息，不打全部历史"></a>十、为什么 Prompt Cache 只打系统提示词和最近 3 条消息，不打全部历史</h2><p><strong>结论：Anthropic 每次请求最多 4 个 breakpoint，系统提示词最稳定（命中率最高），最近 3 条是滚动窗口的权衡——打更多反而没意义。</strong></p>
+<p><code>system_and_3</code> 策略：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Breakpoint 1: 系统提示词（整个会话不变）</span><br><span class="line">Breakpoint 2: 倒数第 3 条消息 ─┐</span><br><span class="line">Breakpoint 3: 倒数第 2 条消息  ├ 滚动窗口</span><br><span class="line">Breakpoint 4: 最后 1 条消息   ─┘</span><br></pre></td></tr></table></figure>
+
+<p>Anthropic prompt cache 的原理是：如果这次请求的前缀和上次完全相同，那一段 token 不重新计算，只收 25% 的费用（有 5 分钟 TTL）。系统提示词在 Hermes 里是会话级别冻结的（<code>prompt_builder.py</code> 构建一次后不再修改），所以第一个 breakpoint 几乎每次都能命中，节省最多。</p>
+<p>为什么不把更多历史消息也打上 breakpoint？因为一旦消息列表增长，每次新消息来了，之前的”第 N 条”变成了”第 N+1 条”，位置变了，cache 就 miss 了。打得越多，miss 越多，反而降低命中率。</p>
+<p>最近 3 条是一个经验值——假设两次 API 调用之间用户发了一条消息、agent 回了一条，”最近 3 条”里通常有 1-2 条和上次调用时完全相同，能命中。打 4 条以上的边际收益很低，因为 4 个 breakpoint 里那最后一个 slot 被最近 3 条占掉了，没有多余的。</p>
+<p>还有一个实现细节很容易被忽视：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># agent/prompt_caching.py</span></span><br><span class="line"><span class="comment"># apply_anthropic_cache_control() 使用 deep copy，不修改原始消息</span></span><br><span class="line">marked_messages = copy.deepcopy(messages)</span><br></pre></td></tr></table></figure>
+
+<p>不修改原始消息是为了防止 cache_control 标记污染 history。如果原始 history 被打上了标记，下一轮构建消息时会看到上一轮的 breakpoint 残留，Anthropic API 会因为 breakpoint 顺序不对而报错。</p>
+<hr>
+<h2 id="十一、为什么有了-Agent-内部压缩，还要有-Gateway-层的-Session-Hygiene"><a href="#十一、为什么有了-Agent-内部压缩，还要有-Gateway-层的-Session-Hygiene" class="headerlink" title="十一、为什么有了 Agent 内部压缩，还要有 Gateway 层的 Session Hygiene"></a>十一、为什么有了 Agent 内部压缩，还要有 Gateway 层的 Session Hygiene</h2><p><strong>结论：Agent 内部压缩需要先启动 agent 才能运行，但 session 可能在 agent 启动前就已经超大——Gateway 层在 agent 启动之前先处理这种情况。</strong></p>
+<p>这个问题可以反过来问：如果只有 Agent 内部压缩，会出什么事？</p>
+<p>场景：用户昨晚用 Telegram 和 agent 聊了两小时，历史达到 95K tokens（接近 128K 的 context window）。今天早上发来第一条消息，Gateway 开始构建 <code>AIAgent</code> 实例，把这 95K tokens 的历史传进去，agent 调用 <code>_build_api_messages()</code>，然后调 API——API 直接返回 <code>context_length_exceeded</code>，因为加上系统提示词和新消息已经超限了。</p>
+<p>Agent 内部压缩的触发点是”进入主循环前”或”API 调用失败后”，但前提是 agent 实例已经创建好了。Gateway Session Hygiene 在消息刚到达、agent 还没创建时就先估算一下 token（用字符数粗估，不精确但足够），如果超 85% 就先压一次，再把压缩后的历史传给 agent。这样 agent 启动时拿到的历史是安全的。</p>
+<p>两层的分工因此是：Agent 层负责”在 context 使用到 50% 时主动优化，保持运行效率”；Gateway 层负责”在 agent 启动前兜底，确保不因为历史过大直接崩掉”。</p>
+<hr>
+<h2 id="十二、压缩算法的摘要模板为什么长这样"><a href="#十二、压缩算法的摘要模板为什么长这样" class="headerlink" title="十二、压缩算法的摘要模板为什么长这样"></a>十二、压缩算法的摘要模板为什么长这样</h2><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">## Goal</span></span><br><span class="line"><span class="section">## Constraints &amp; Preferences</span></span><br><span class="line"><span class="section">## Progress</span></span><br><span class="line">  ### Done</span><br><span class="line">  ### In Progress</span><br><span class="line">  ### Blocked</span><br><span class="line"><span class="section">## Key Decisions</span></span><br><span class="line"><span class="section">## Relevant Files</span></span><br><span class="line"><span class="section">## Next Steps</span></span><br><span class="line"><span class="section">## Critical Context</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>结论：这个结构是为了让下一次压缩时能做”增量更新”而不是”重新摘要”。</strong></p>
+<p>每次压缩生成摘要，后续再次压缩时，这个摘要会被传给 LLM 并要求”更新它而不是重新写”。如果摘要是非结构化的叙述文本，”更新”的意思就很模糊——LLM 可能重新写一遍、可能只改一部分、可能把已完成的事当做”进行中”还留着。</p>
+<p>有了固定的 section 结构，”更新”就变成了：把 <code>In Progress</code> 里完成的条目移到 <code>Done</code>；把新遇到的阻塞加进 <code>Blocked</code>；更新 <code>Relevant Files</code> 里的文件状态。每个 section 的职责清晰，LLM 知道什么信息应该放在哪、什么信息应该被淘汰。</p>
+<p><code>_previous_summary</code> 字段存在 <code>ContextCompressor</code> 实例上，跟着 agent 实例的生命周期走。这意味着同一个 agent 多次压缩，摘要是有记忆的——不会因为压缩了三次就变成”三次独立摘要的堆砌”，而是一份持续被更新的项目进度文档。</p>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+    
+    
+
+    
+      
+<div class="post-nav book-nav">
+  
+    <div class="post-nav-prev post-nav-item">
+      <a href="/books/hermes/13-终端多环境ACP适配器与Gateway平台/" rel="prev" title="十三、终端多环境ACP适配器与Gateway平台">
+        <span class="post-nav-direction">上一章</span>
+        <span class="post-nav-title">十三、终端多环境ACP适配器与Gateway平台</span>
+        <i class="fa fa-chevron-left"></i>
+      </a>
+    </div>
+  
+
+  
+    <div class="post-nav-next post-nav-item">
+      <a href="/books/hermes/15-完整大纲/" rel="next" title="十五、完整大纲">
+        <span class="post-nav-direction">下一篇</span>
+        <span class="post-nav-title">十五、完整大纲</span>
+        <i class="fa fa-chevron-right"></i>
+      </a>
+    </div>
+  
+</div>
+
+
+    
+
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+     
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.gif"
+                alt="awabuda" />
+            
+              <p class="site-author-name" itemprop="name">awabuda</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/awabuda" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i></a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:awabdua@163.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i></a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Hermes-Agent-核心实现：工程师为什么这么做"><span class="nav-number">1.</span> <span class="nav-text">Hermes Agent 核心实现：工程师为什么这么做</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#一、为什么-AIAgent-是同步的，明明-Python-有-async"><span class="nav-number">1.1.</span> <span class="nav-text">一、为什么 AIAgent 是同步的，明明 Python 有 async</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#二、为什么-run-agent-py-有上万行而不拆分成多个文件"><span class="nav-number">1.2.</span> <span class="nav-text">二、为什么 run_agent.py 有上万行而不拆分成多个文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三、IterationBudget-的三个设计细节：为什么这么不简单"><span class="nav-number">1.3.</span> <span class="nav-text">三、IterationBudget 的三个设计细节：为什么这么不简单</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#四、为什么工具并发用-ThreadPoolExecutor-而不是-asyncio-gather"><span class="nav-number">1.4.</span> <span class="nav-text">四、为什么工具并发用 ThreadPoolExecutor 而不是 asyncio.gather</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#五、Gateway-会话状态为什么从-os-environ-迁移到-contextvars"><span class="nav-number">1.5.</span> <span class="nav-text">五、Gateway 会话状态为什么从 os.environ 迁移到 contextvars</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#六、为什么上下文压缩分两层，而不是统一一个阈值"><span class="nav-number">1.6.</span> <span class="nav-text">六、为什么上下文压缩分两层，而不是统一一个阈值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#七、压缩算法里-protect-first-n-是硬编码的-3，为什么不让用户配置"><span class="nav-number">1.7.</span> <span class="nav-text">七、压缩算法里 protect_first_n 是硬编码的 3，为什么不让用户配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#八、子-Agent-的-Budget-为什么独立，而不是从父-Agent-扣"><span class="nav-number">1.8.</span> <span class="nav-text">八、子 Agent 的 Budget 为什么独立，而不是从父 Agent 扣</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#九、SQLite-为什么用-jitter-retry-而不是用数据库级锁等待"><span class="nav-number">1.9.</span> <span class="nav-text">九、SQLite 为什么用 jitter retry 而不是用数据库级锁等待</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#十、为什么-Prompt-Cache-只打系统提示词和最近-3-条消息，不打全部历史"><span class="nav-number">1.10.</span> <span class="nav-text">十、为什么 Prompt Cache 只打系统提示词和最近 3 条消息，不打全部历史</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#十一、为什么有了-Agent-内部压缩，还要有-Gateway-层的-Session-Hygiene"><span class="nav-number">1.11.</span> <span class="nav-text">十一、为什么有了 Agent 内部压缩，还要有 Gateway 层的 Session Hygiene</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#十二、压缩算法的摘要模板为什么长这样"><span class="nav-number">1.12.</span> <span class="nav-text">十二、压缩算法的摘要模板为什么长这样</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+      
+        <div>
+  <canvas id="canvasDiyBlock" style="width:60%;">当前浏览器不支持canvas，请更换浏览器后再试</canvas>
+  <script>
+    (function () {
+
+      var digit = [
+        [
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 1, 1, 0, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 0, 1, 1, 0],
+          [0, 0, 1, 1, 1, 0, 0]
+        ], //0
+        [
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 1, 1, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [1, 1, 1, 1, 1, 1, 1]
+        ], //1
+        [
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 1, 1, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 1, 1, 1, 1, 1]
+        ], //2
+        [
+          [1, 1, 1, 1, 1, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //3
+        [
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 1, 0],
+          [0, 0, 1, 1, 1, 1, 0],
+          [0, 1, 1, 0, 1, 1, 0],
+          [1, 1, 0, 0, 1, 1, 0],
+          [1, 1, 1, 1, 1, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 1, 1]
+        ], //4
+        [
+          [1, 1, 1, 1, 1, 1, 1],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 1, 1, 1, 1, 0],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //5
+        [
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 1, 1, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 0, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //6
+        [
+          [1, 1, 1, 1, 1, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0]
+        ], //7
+        [
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //8
+        [
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 1, 1, 0, 0, 0, 0]
+        ], //9
+        [
+          [0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0]
+        ] //:
+      ];
+
+      var canvas = document.getElementById('canvasDiyBlock');
+      if (canvas.getContext) {
+        var cxt = canvas.getContext('2d');
+        //声明canvas的宽高
+        var H = 100,
+          W = 700;
+        canvas.height = H;
+        canvas.width = W;
+        cxt.fillStyle = '#f00';
+        cxt.fillRect(10, 10, 50, 50);
+
+        //存储时间数据
+        var data = [];
+        //存储运动的小球
+        var balls = [];
+        //设置粒子半径
+        var R = canvas.height / 20 - 1;
+        (function () {
+          var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+          //存储时间数字，由十位小时、个位小时、冒号、十位分钟、个位分钟、冒号、十位秒钟、个位秒钟这7个数字组成
+          data.push(temp[1], temp[2], 10, temp[3], temp[4], 10, temp[5], temp[6]);
+        })();
+
+        /*生成点阵数字*/
+        function renderDigit(index, num) {
+          for (var i = 0; i < digit[num].length; i++) {
+            for (var j = 0; j < digit[num][i].length; j++) {
+              if (digit[num][i][j] == 1) {
+                cxt.beginPath();
+                cxt.arc(14 * (R + 2) * index + j * 2 * (R + 1) + (R + 1), i * 2 * (R + 1) + (R + 1), R, 0, 2 * Math
+                  .PI);
+                cxt.closePath();
+                cxt.fill();
+              }
+            }
+          }
+        }
+
+        /*更新时钟*/
+        function updateDigitTime() {
+          var changeNumArray = [];
+          var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+          var NewData = [];
+          NewData.push(temp[1], temp[2], 10, temp[3], temp[4], 10, temp[5], temp[6]);
+          for (var i = data.length - 1; i >= 0; i--) {
+            //时间发生变化
+            if (NewData[i] !== data[i]) {
+              //将变化的数字值和在data数组中的索引存储在changeNumArray数组中
+              changeNumArray.push(i + '_' + (Number(data[i]) + 1) % 10);
+            }
+          }
+          //增加小球
+          for (var i = 0; i < changeNumArray.length; i++) {
+            addBalls.apply(this, changeNumArray[i].split('_'));
+          }
+          data = NewData.concat();
+        }
+
+        /*更新小球状态*/
+        function updateBalls() {
+          for (var i = 0; i < balls.length; i++) {
+            balls[i].stepY += balls[i].disY;
+            balls[i].x += balls[i].stepX;
+            balls[i].y += balls[i].stepY;
+            if (balls[i].x > W + R || balls[i].y > H + R) {
+              balls.splice(i, 1);
+              i--;
+            }
+          }
+        }
+
+        /*增加要运动的小球*/
+        function addBalls(index, num) {
+          var numArray = [1, 2, 3];
+          var colorArray = ["#3BE", "#09C", "#A6C", "#93C", "#9C0", "#690", "#FB3", "#F80", "#F44", "#C00"];
+          for (var i = 0; i < digit[num].length; i++) {
+            for (var j = 0; j < digit[num][i].length; j++) {
+              if (digit[num][i][j] == 1) {
+                var ball = {
+                  x: 14 * (R + 2) * index + j * 2 * (R + 1) + (R + 1),
+                  y: i * 2 * (R + 1) + (R + 1),
+                  stepX: Math.floor(Math.random() * 4 - 2),
+                  stepY: -2 * numArray[Math.floor(Math.random() * numArray.length)],
+                  color: colorArray[Math.floor(Math.random() * colorArray.length)],
+                  disY: 1
+                };
+                balls.push(ball);
+              }
+            }
+          }
+        }
+
+        /*渲染*/
+        function render() {
+          //重置画布宽度，达到清空画布的效果
+          canvas.height = 100;
+          //渲染时钟
+          for (var i = 0; i < data.length; i++) {
+            renderDigit(i, data[i]);
+          }
+          //渲染小球
+          for (var i = 0; i < balls.length; i++) {
+            cxt.beginPath();
+            cxt.arc(balls[i].x, balls[i].y, R, 0, 2 * Math.PI);
+            cxt.fillStyle = balls[i].color;
+            cxt.closePath();
+            cxt.fill();
+          }
+        }
+
+        clearInterval(oTimer);
+        var oTimer = setInterval(function () {
+          //更新时钟
+          updateDigitTime();
+          //更新小球状态
+          updateBalls();
+          //渲染
+          render();
+        }, 50);
+      }
+    })();
+
+  </script>
+
+
+</div>
+
+      
+
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">awabuda</span>
+
+  
+</div>
+
+
+
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+  
+  
+
+
+
+  
+  
+
+
+
+  
+  
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_sphere.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item=>{
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: true,
+        notify: false,
+        appId: 'DBST5TYeCj1kQTDDNozqqYJ7-gzGzoHsz',
+        appKey: '3U5lXDpHXEHKjMOrQtSQSWk6',
+        placeholder: '请留下您宝贵的意见',
+        avatar:'wavatar',
+        guest_info:guest,
+        pageSize:'10' || 10,
+    });
+  </script>
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("DBST5TYeCj1kQTDDNozqqYJ7-gzGzoHsz", "3U5lXDpHXEHKjMOrQtSQSWk6");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof mermaid === 'undefined') return;
+      mermaid.initialize({
+        theme: 'default',
+        startOnLoad: true,
+        securityLevel: 'loose',
+        flowchart: { useMaxWidth: true, htmlLabels: true },
+        sequence: { useMaxWidth: true, htmlLabels: true }
+      });
+      mermaid.run({ querySelector: '.mermaid' });
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+  <script>
+  !function (e, t, a) { function n() { c(".heart{width: 10px;height: 10px;position: fixed;background: #f00;transform: rotate(45deg);-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);}.heart:after,.heart:before{content: '';width: inherit;height: inherit;background: inherit;border-radius: 50%;-webkit-border-radius: 50%;-moz-border-radius: 50%;position: fixed;}.heart:after{top: -5px;}.heart:before{left: -5px;}"), o(), r() } function r() { for (var e = 0; e < d.length; e++)d[e].alpha <= 0 ? (t.body.removeChild(d[e].el), d.splice(e, 1)) : (d[e].y-- , d[e].scale += .004, d[e].alpha -= .013, d[e].el.style.cssText = "left:" + d[e].x + "px;top:" + d[e].y + "px;opacity:" + d[e].alpha + ";transform:scale(" + d[e].scale + "," + d[e].scale + ") rotate(45deg);background:" + d[e].color + ";z-index:99999"); requestAnimationFrame(r) } function o() { var t = "function" == typeof e.onclick && e.onclick; e.onclick = function (e) { t && t(), i(e) } } function i(e) { var a = t.createElement("div"); a.className = "heart", d.push({ el: a, x: e.clientX - 5, y: e.clientY - 5, scale: 1, alpha: 1, color: s() }), t.body.appendChild(a) } function c(e) { var a = t.createElement("style"); a.type = "text/css"; try { a.appendChild(t.createTextNode(e)) } catch (t) { a.styleSheet.cssText = e } t.getElementsByTagName("head")[0].appendChild(a) } function s() { return "rgb(" + ~~(255 * Math.random()) + "," + ~~(255 * Math.random()) + "," + ~~(255 * Math.random()) + ")" } var d = []; e.requestAnimationFrame = function () { return e.requestAnimationFrame || e.webkitRequestAnimationFrame || e.mozRequestAnimationFrame || e.oRequestAnimationFrame || e.msRequestAnimationFrame || function (e) { setTimeout(e, 1e3 / 60) } }(), n() }(window, document);
+</script>
+</body>
+</html>

@@ -1,0 +1,1714 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+  
+
+<link href="//cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="js,node,小程序,ts" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="五、记忆模块三层架构 结论先行：Hermes 的记忆系统解决了 LLM 无状态的本质问题——LLM 本身不记得任何东西，必须在每次请求时重建上下文。Hermes 用三层记忆分别解决三类”记住”问题：第一层（MEMORY.md&#x2F;USER.md）解决”下次见面还认识你”，第二层（SQLite + FTS5）解决”找回过去做过什么”，第三层（技能文件）解决”记住怎么做”。   三层记忆架构全览12345">
+<meta property="og:type" content="website">
+<meta property="og:title" content="五、记忆模块三层架构">
+<meta property="og:url" content="http://yoursite.com/books/hermes/05-%E8%AE%B0%E5%BF%86%E6%A8%A1%E5%9D%97%E4%B8%89%E5%B1%82%E6%9E%B6%E6%9E%84/index.html">
+<meta property="og:site_name" content="悟凌斋">
+<meta property="og:description" content="五、记忆模块三层架构 结论先行：Hermes 的记忆系统解决了 LLM 无状态的本质问题——LLM 本身不记得任何东西，必须在每次请求时重建上下文。Hermes 用三层记忆分别解决三类”记住”问题：第一层（MEMORY.md&#x2F;USER.md）解决”下次见面还认识你”，第二层（SQLite + FTS5）解决”找回过去做过什么”，第三层（技能文件）解决”记住怎么做”。   三层记忆架构全览12345">
+<meta property="article:published_time" content="2026-05-25T06:35:19.640Z">
+<meta property="article:modified_time" content="2026-05-25T06:35:19.640Z">
+<meta property="article:author" content="awabuda">
+<meta property="article:tag" content="博客">
+<meta property="article:tag" content="js">
+<meta property="article:tag" content="前端">
+<meta property="article:tag" content="node">
+<meta property="article:tag" content="vue">
+<meta property="article:tag" content="react">
+<meta property="article:tag" content="koa">
+<meta property="article:tag" content="算法">
+<meta property="article:tag" content="css">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/books/hermes/05-记忆模块三层架构/"/>
+
+
+
+
+
+  <title>五、记忆模块三层架构 | 悟凌斋</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?b376e3ef6e386ad73d4f7661ebfc0d25";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">悟凌斋</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">一行代码翘起整个前端</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+	<h2 class="post-title" itemprop="name headline">五、记忆模块三层架构</h2>
+
+
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+        
+          <h1 id="五、记忆模块三层架构"><a href="#五、记忆模块三层架构" class="headerlink" title="五、记忆模块三层架构"></a>五、记忆模块三层架构</h1><blockquote>
+<p><strong>结论先行</strong>：Hermes 的记忆系统解决了 LLM 无状态的本质问题——LLM 本身不记得任何东西，必须在每次请求时重建上下文。Hermes 用三层记忆分别解决三类”记住”问题：<strong>第一层（MEMORY.md/USER.md）解决”下次见面还认识你”</strong>，<strong>第二层（SQLite + FTS5）解决”找回过去做过什么”</strong>，<strong>第三层（技能文件）解决”记住怎么做”</strong>。</p>
+</blockquote>
+<hr>
+<h2 id="三层记忆架构全览"><a href="#三层记忆架构全览" class="headerlink" title="三层记忆架构全览"></a>三层记忆架构全览</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────────────────────────────────────────────┐</span><br><span class="line">│           Hermes 三层记忆架构                             │</span><br><span class="line">├─────────────────────────────────────────────────────────┤</span><br><span class="line">│  第一层：内置持久记忆（陈述性记忆）                       │</span><br><span class="line">│                                                         │</span><br><span class="line">│   MEMORY.md  → Agent 对环境&#x2F;约定&#x2F;工具特性的笔记          │</span><br><span class="line">│   USER.md    → 用户偏好、工作风格、习惯                  │</span><br><span class="line">│   容量限制：MEMORY.md ≤ 2200 字符，USER.md ≤ 1375 字符  │</span><br><span class="line">│   存储位置：~&#x2F;.hermes&#x2F;memories&#x2F;                         │</span><br><span class="line">│   注入方式：session 开始时以&quot;冻结快照&quot;注入 system prompt │</span><br><span class="line">│   更新时机：LLM 调用 memory 工具，或自动 flush           │</span><br><span class="line">├─────────────────────────────────────────────────────────┤</span><br><span class="line">│  第二层：会话历史检索（情景记忆）                         │</span><br><span class="line">│                                                         │</span><br><span class="line">│   存储：SQLite + FTS5 全文搜索索引                       │</span><br><span class="line">│   位置：~&#x2F;.hermes&#x2F;state.db                              │</span><br><span class="line">│   访问：LLM 主动调用 session_search 工具按需检索         │</span><br><span class="line">│   写入：每轮对话结束时自动持久化；原文永久保留            │</span><br><span class="line">├─────────────────────────────────────────────────────────┤</span><br><span class="line">│  第三层：技能知识库（程序性记忆）                         │</span><br><span class="line">│                                                         │</span><br><span class="line">│   存储：~&#x2F;.hermes&#x2F;skills&#x2F;**&#x2F;*.md                        │</span><br><span class="line">│   注入：按需加载为用户消息，system prompt 只含摘要索引    │</span><br><span class="line">│   索引大小：每个技能约 60-100 字符，20 个技能 ≈ 2000 字符│</span><br><span class="line">├─────────────────────────────────────────────────────────┤</span><br><span class="line">│  （可选）外部记忆提供商（共 8 个）                        │</span><br><span class="line">│   mem0 &#x2F; Honcho &#x2F; RetainDB &#x2F; Supermemory &#x2F;              │</span><br><span class="line">│   Holographic &#x2F; ByteRover &#x2F; Hindsight &#x2F; OpenViking      │</span><br><span class="line">│   通过 MemoryManager 统一管理，prefetch 后注入 user 消息 │</span><br><span class="line">│   任意时刻只能激活一个；内置 MEMORY.md 始终并行运行      │</span><br><span class="line">└─────────────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p><strong>第三层技能索引的大小</strong>：技能以<strong>两级缓存的紧凑索引</strong>注入 system prompt，每个技能仅占一行（名称 + 一句话描述），不包含全文内容。LLM 看到索引后，当判断某技能与当前任务相关时，主动调用 <code>skill_view(name)</code> 加载完整 SKILL.md 内容，再按其中指令执行。索引大小取决于安装的技能数量：每个技能约 60-100 字符，20 个技能约 1500-2000 字符，对 system prompt 影响可控。进程内使用 LRU 缓存（<code>_SKILLS_PROMPT_CACHE</code>）避免每轮重新扫描文件系统；重启后通过 <code>~/.hermes/.skills_prompt_snapshot.json</code> 磁盘快照（mtime/size 比对）加速恢复。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"># 注入 system prompt 的紧凑索引实际格式（build_skills_system_prompt() 输出）：</span><br><span class="line"></span><br><span class="line">## Skills (mandatory)</span><br><span class="line">Before replying, scan the skills below. If one clearly matches your task,</span><br><span class="line">load it with skill_view(name) and follow its instructions. ...</span><br><span class="line"></span><br><span class="line">&lt;available_skills&gt;</span><br><span class="line">  creative:</span><br><span class="line">    - ascii-art: Generate ASCII art from text or images</span><br><span class="line">    - manim-video: Create mathematical animations with Manim</span><br><span class="line">  devops:</span><br><span class="line">    - docker-management: Manage Docker containers and images</span><br><span class="line">    - webhook-subscriptions: Subscribe to webhook events</span><br><span class="line">  github:</span><br><span class="line">    - github-pr-workflow: End-to-end PR creation and review workflow</span><br><span class="line">    - github-issues: Create and manage GitHub issues</span><br><span class="line">  mlops:</span><br><span class="line">    - huggingface-hub: Browse and download models from HuggingFace</span><br><span class="line">&lt;&#x2F;available_skills&gt;</span><br><span class="line"></span><br><span class="line">If none match, proceed normally without loading a skill.</span><br><span class="line"></span><br><span class="line"># 每个技能只有一行：- 名称: 一句话描述</span><br><span class="line"># 全文内容不在 system prompt 里；LLM 调用 skill_view(name) 时才按需加载完整 SKILL.md</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">请求 build_skills_system_prompt()</span><br><span class="line">        │</span><br><span class="line">        ▼</span><br><span class="line">第 1 级：进程内 LRU dict（_SKILLS_PROMPT_CACHE）</span><br><span class="line">        │  key &#x3D; (skills_dir路径, 工具列表, toolset列表, 平台)，最多缓存 8 个不同 key</span><br><span class="line">        │  命中 → 直接返回字符串，零 I&#x2F;O</span><br><span class="line">        │  未命中 ↓</span><br><span class="line">        ▼</span><br><span class="line">第 2 级：磁盘快照（~&#x2F;.hermes&#x2F;.skills_prompt_snapshot.json）</span><br><span class="line">        │  有效性验证：对比每个 SKILL.md 的 [mtime_ns, size]</span><br><span class="line">        │  命中 → 跳过文件解析，直接从预解析元数据拼字符串</span><br><span class="line">        │  未命中 ↓</span><br><span class="line">        ▼</span><br><span class="line">冷启动路径：完整文件系统扫描</span><br><span class="line">        │  读取每个 SKILL.md → 解析 frontmatter → 提取 description</span><br><span class="line">        │  写入磁盘快照（供下次进程重启后复用）</span><br><span class="line">        │  写回 LRU dict</span><br><span class="line">        ▼</span><br><span class="line">返回最终索引字符串（注入 system prompt）</span><br></pre></td></tr></table></figure>
+
+<p><strong>缓存失效规则</strong>：磁盘 snapshot 的有效性由 <code>_build_skills_manifest()</code> 判断——对每个 <code>SKILL.md</code> 记录 <code>[mtime_ns, size]</code>，只要有任意一个文件被修改/新增/删除，整个 snapshot 自动失效，触发冷启动全量重扫并覆写新 snapshot。LRU dict 最多缓存 8 个不同 <code>(skills_dir, tools, toolsets, platform)</code> 组合，超出后淘汰最久未用的条目（<code>OrderedDict</code> + LRU 策略）；多平台 gateway 同时服务时，不同平台的索引各自独立缓存，互不干扰。</p>
+<hr>
+<h2 id="第一层：内置持久记忆（MEMORY-md-USER-md）"><a href="#第一层：内置持久记忆（MEMORY-md-USER-md）" class="headerlink" title="第一层：内置持久记忆（MEMORY.md / USER.md）"></a>第一层：内置持久记忆（MEMORY.md / USER.md）</h2><p><strong>做什么</strong>：两个 Markdown 文件分别存储 Agent 自己的笔记和用户画像。每次新会话开始时，这两个文件的内容以”冻结快照”形式拼入 system prompt，LLM 从第一条消息起就”认识”当前用户和当前环境。两个文件各有严格的<strong>字符上限</strong>（而非 token 上限，因为字符计数与模型无关，不同 tokenizer 下 token 数差异显著）：MEMORY.md 上限 2200 字符（约 800 tokens），USER.md 上限 1375 字符（约 500 tokens）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">两个文件的分工：</span><br><span class="line">MEMORY.md &#x3D; &quot;Agent 的工作笔记本&quot;（上限 2200 字符）</span><br><span class="line">  存储：项目约定、工具特性、解决过的问题</span><br><span class="line">  例：&quot;Python 项目使用 uv 管理依赖，测试命令是 pytest -v tests&#x2F;&quot;</span><br><span class="line">       &quot;用户的 Docker Desktop 有时候需要重启才能 pull 成功&quot;</span><br><span class="line"></span><br><span class="line">USER.md &#x3D; &quot;用户画像&quot;（上限 1375 字符）</span><br><span class="line">  存储：用户偏好、沟通风格、工作习惯</span><br><span class="line">  例：&quot;用户偏好简洁回答，不喜欢废话和过多解释&quot;</span><br><span class="line">       &quot;工作目录通常在 ~&#x2F;projects，代码风格遵循 Google Style Guide&quot;</span><br></pre></td></tr></table></figure>
+
+<p><strong>为什么分两个文件？</strong> 职责分离让 LLM 写入时更容易判断放哪个文件（环境事实 vs 用户偏好），也便于未来分别调整容量配置、生命周期策略。</p>
+<p><strong>写入流程（memory 工具）</strong>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># LLM 调用示例</span></span><br><span class="line"><span class="comment"># target 参数指定写入哪个文件："memory" → MEMORY.md，"user" → USER.md</span></span><br><span class="line">memory(action=<span class="string">"add"</span>,     target=<span class="string">"memory"</span>, content=<span class="string">"项目使用 uv，不是 pip"</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># replace/remove 使用 old_text 子字符串匹配定位条目（不是精确键名匹配）</span></span><br><span class="line"><span class="comment"># old_text 只需是目标条目的任意子字符串，LLM 无需提供完整条目内容</span></span><br><span class="line">memory(action=<span class="string">"replace"</span>, target=<span class="string">"memory"</span>, old_text=<span class="string">"uv，不是 pip"</span>, content=<span class="string">"项目使用 uv 管理依赖，poetry 已弃用"</span>)</span><br><span class="line">memory(action=<span class="string">"remove"</span>,  target=<span class="string">"memory"</span>, old_text=<span class="string">"Docker Desktop 有时"</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 注意：memory 工具不存在 "read" action</span></span><br><span class="line"><span class="comment"># 记忆内容已在会话开始时自动注入 system prompt，LLM 直接从上下文中读取</span></span><br><span class="line"><span class="comment"># （工具响应始终反映磁盘的实时状态，与 system prompt 快照无关）</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>replace/remove 的匹配逻辑（子字符串匹配）</strong>：  </p>
+<ul>
+<li><p>命中 0 条 → 返回 <code>&quot;No entry matched&quot;</code> 错误  </p>
+</li>
+<li><p>命中多条且内容相同（精确重复）→ 只操作第 0 条，安全  </p>
+</li>
+<li><p>命中多条且内容不同 → 返回 <code>&quot;Multiple entries matched, be more specific&quot;</code> 错误，并附上各条目前 80 字预览，要求 LLM 提供更精确的 <code>old_text</code>  </p>
+</li>
+</ul>
+<p><strong>去重机制</strong>：<code>load_from_disk()</code> 读取文件后用 <code>dict.fromkeys()</code> 去重（保留首次出现、去掉精确重复条目）；<code>add()</code> 时对精确重复做预判，直接跳过并提示 <code>&quot;Entry already exists&quot;</code>。注意：去重仅针对精确重复的完整条目，语义相似但文字不同的条目不会被合并。</p>
+<p><strong>容量超限时的处理</strong>：执行 <code>add</code> 操作时，系统预先计算新总长度；若超限，直接返回错误并提示当前用量和超出量，要求先 <code>replace</code>/<code>remove</code> 腾出空间。<code>replace</code> 同样做超限检查，确保替换后不超容量上限。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tools/memory_tool.py - MemoryStore.add()</span></span><br><span class="line"><span class="keyword">if</span> new_total &gt; limit:</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">        <span class="string">"success"</span>: <span class="literal">False</span>,</span><br><span class="line">        <span class="string">"error"</span>: (</span><br><span class="line">            <span class="string">f"Memory at <span class="subst">&#123;current:,&#125;</span>/<span class="subst">&#123;limit:,&#125;</span> chars. "</span></span><br><span class="line">            <span class="string">f"Adding this entry (<span class="subst">&#123;len(content)&#125;</span> chars) would exceed the limit. "</span></span><br><span class="line">            <span class="string">f"Replace or remove existing entries first."</span></span><br><span class="line">        ),</span><br><span class="line">        <span class="string">"current_entries"</span>: entries,</span><br><span class="line">        <span class="string">"usage"</span>: <span class="string">f"<span class="subst">&#123;current:,&#125;</span>/<span class="subst">&#123;limit:,&#125;</span>"</span>,</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键设计：冻结快照（Frozen Snapshot）</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">会话开始：</span><br><span class="line">  MEMORY.md 内容 → 拼入 system prompt（快照冻结，本会话不变）</span><br><span class="line">      │</span><br><span class="line">      │ 对话中途，LLM 发现新知识</span><br><span class="line">      ▼</span><br><span class="line">  memory(action&#x3D;&quot;add&quot;, content&#x3D;&quot;新知识&quot;)</span><br><span class="line">      │</span><br><span class="line">      ├── 立即写入磁盘（持久化）</span><br><span class="line">      └── 不修改当前 system prompt（保持提示缓存有效）</span><br><span class="line">      </span><br><span class="line">      │ 本次会话结束</span><br><span class="line">      ▼</span><br><span class="line">  下次会话开始：</span><br><span class="line">  重新读取 MEMORY.md → 新知识进入 system prompt 快照</span><br></pre></td></tr></table></figure>
+
+<p>为什么用”冻结快照”而不是实时更新？如果每次写入记忆都重建 system prompt，Anthropic prefix cache 就会失效，导致每轮都全量计费（通常 2000~8000 token）。冻结快照保证 system prompt 在整个会话内稳定，prefix cache 持续命中，<strong>最多可将缓存命中部分的输入 token 成本降低约 90%</strong>（Anthropic prefix cache 命中按原价 10% 计费）。实际节省幅度取决于 cache 命中率，系统设计目标是让 system prompt 前缀在整个会话内保持不变以最大化命中。  </p>
+<p><strong>本次会话写入的记忆，当前会话能立即看到吗？</strong> 不能——但这是设计意图而非缺陷：磁盘立即持久化（原子写），LLM 在工具响应结果里能看到最新条目，而 system prompt 快照不变；下次 <code>AIAgent.__init__()</code> 时重新读取文件，新内容才进入快照。</p>
+<p><strong>安全扫描</strong>（防止提示注入攻击）：每条记忆写入前都会经过安全扫描，匹配以下威胁模式的内容将被拒绝写入。扫描范围不限于下方展示的 3 条规则，还包括凭据泄露、SSH 后门等模式，以及不可见 Unicode 字符检测。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tools/memory_tool.py（威胁模式示例，非完整列表）</span></span><br><span class="line">_MEMORY_THREAT_PATTERNS = [</span><br><span class="line">    (<span class="string">r'ignore\s+(previous|all|above|prior)\s+instructions'</span>, <span class="string">"prompt_injection"</span>),</span><br><span class="line">    (<span class="string">r'you\s+are\s+now\s+'</span>, <span class="string">"role_hijack"</span>),</span><br><span class="line">    (<span class="string">r'system\s+prompt\s+override'</span>, <span class="string">"sys_prompt_override"</span>),</span><br><span class="line">    <span class="comment"># 还包括：凭据泄露、SSH backdoor、不可见 Unicode 字符等模式</span></span><br><span class="line">]</span><br><span class="line"><span class="comment"># 写入前扫描：任何匹配到威胁模式的内容都会被拒绝写入</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>多 profile 下的记忆隔离</strong>：记忆文件路径通过 <code>get_memory_dir()</code> 动态解析（调用 <code>get_hermes_home()</code> 读取 <code>HERMES_HOME</code> 环境变量），不同 profile 的 <code>HERMES_HOME</code> 各不相同，因此各 profile 的记忆文件完全隔离，互不干扰：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">~&#x2F;.hermes&#x2F;memories&#x2F;MEMORY.md                    ← 默认 profile</span><br><span class="line">~&#x2F;.hermes&#x2F;profiles&#x2F;coder&#x2F;memories&#x2F;MEMORY.md     ← coder profile</span><br><span class="line">~&#x2F;.hermes&#x2F;profiles&#x2F;work&#x2F;memories&#x2F;MEMORY.md      ← work profile</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="自动记忆-Flush（防止信息在压缩中丢失）"><a href="#自动记忆-Flush（防止信息在压缩中丢失）" class="headerlink" title="自动记忆 Flush（防止信息在压缩中丢失）"></a>自动记忆 Flush（防止信息在压缩中丢失）</h3><p><strong>做什么</strong>：在上下文压缩前，让 LLM 主动决定哪些信息值得长期保存，避免重要细节随中间轮次的摘要被淡化甚至丢失。</p>
+<p><strong>触发条件</strong>：</p>
+<ul>
+<li>上下文压缩前自动触发（<code>min_turns=0</code>，强制执行）</li>
+<li>周期性轮次触发（每隔 N 轮对话，LLM 主动复盘是否有新知识值得保存；N 可通过 config.yaml 配置，默认 6 轮，设为 0 可禁用）</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">flush_memories() 流程：</span><br><span class="line"></span><br><span class="line">在 messages 末尾追加临时 flush 提示消息（含 sentinel 边界标记）</span><br><span class="line">    │  &quot;Review our conversation. Save important facts, user preferences,</span><br><span class="line">    │   and project conventions to memory. Use the memory tool now.&quot;</span><br><span class="line">    │  只暴露 memory 工具（其他工具从 schema 中移除）</span><br><span class="line">    ▼</span><br><span class="line">调用辅助 LLM（较廉价模型，temperature&#x3D;0.3；具体模型可通过 aux_model 配置）</span><br><span class="line">    │  LLM 扫描对话，判断哪些内容值得保存</span><br><span class="line">    │  若无新知识，LLM 可以选择不调用任何工具（flush 流程仍正常结束）</span><br><span class="line">    ▼</span><br><span class="line">LLM 调用 memory 工具写入 → 持久化到磁盘</span><br><span class="line">    ▼</span><br><span class="line">用 sentinel 标记找到临时消息的边界 → pop 掉临时消息</span><br><span class="line">    │  原始 messages 列表不受污染</span><br><span class="line">    │  flush 过程中 LLM 产生的所有输出（含工具调用）均在边界内，一并清除</span><br><span class="line">    ▼</span><br><span class="line">（注意：本次会话的 system prompt 不变；新内容下轮生效）</span><br></pre></td></tr></table></figure>
+
+<p><strong>flush 调用的辅助 LLM 如何配置？</strong> <code>flush_memories()</code> 优先通过 <code>call_llm(task=&quot;flush_memories&quot;)</code> 调用辅助 LLM，模型由 <code>config.yaml</code> 的 <code>auxiliary.flush_memories</code> 节点决定。若未配置，系统走 auto 提供商自动选择逻辑（通常选当前可用的较廉价模型）；若辅助 LLM 不可用，回退为主提供商直接调用，以 <code>temperature=0.3</code>、<code>max_tokens=5120</code> 发起请求。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ~/.hermes/config.yaml</span></span><br><span class="line"><span class="attr">auxiliary:</span></span><br><span class="line">  <span class="attr">flush_memories:</span></span><br><span class="line">    <span class="attr">provider:</span> <span class="string">"anthropic"</span>          <span class="comment"># 可选，不填则 auto</span></span><br><span class="line">    <span class="attr">model:</span> <span class="string">"claude-haiku-4-5"</span>      <span class="comment"># 可选，不填则 auto 选较廉价模型</span></span><br><span class="line">    <span class="attr">timeout:</span> <span class="number">30</span>                    <span class="comment"># 可选，默认 30 秒</span></span><br><span class="line"><span class="attr">memory:</span></span><br><span class="line">  <span class="attr">flush_min_turns:</span> <span class="number">6</span>   <span class="comment"># 满 N 轮对话才触发周期性 flush（0 = 禁用）</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>如果 LLM 判断没有值得保存的信息，会怎么做？</strong> 什么都不做，静默完成。flush 提示词只是请求”如果有就保存”，LLM 若认为无新知识，就不调用 <code>memory</code> 工具，<code>flush_memories()</code> 收到的 <code>tool_calls</code> 为空，直接进入 <code>finally</code> 清理 sentinel 并返回。即便 LLM 不写任何东西，flush 调用只多一次辅助 LLM 请求（较廉价），不会有额外副作用。</p>
+<p><strong>sentinel 标记的技术细节</strong>：sentinel 是格式为 <code>__flush_{id(self)}_{time.monotonic()}</code> 的唯一字符串（如 <code>__flush_140234567890_12345.678901</code>）。<code>id(self)</code> 确保不同 AIAgent 实例之间不冲突，<code>time.monotonic()</code> 确保同一实例的多次 flush 之间不冲突。之所以用字符串比较而非对象 identity（<code>is</code>），是因为 messages 列表可能经过序列化/反序列化（dict copy、JSON 往返），对象 identity 不可靠，字符串比较更稳健。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># run_agent.py</span></span><br><span class="line">_sentinel = <span class="string">f"__flush_<span class="subst">&#123;id(self)&#125;</span>_<span class="subst">&#123;time.monotonic()&#125;</span>"</span></span><br><span class="line">flush_msg = &#123;<span class="string">"role"</span>: <span class="string">"user"</span>, <span class="string">"content"</span>: flush_content, <span class="string">"_flush_sentinel"</span>: _sentinel&#125;</span><br><span class="line">messages.append(flush_msg)</span><br><span class="line"></span><br><span class="line"><span class="comment"># finally 块：无论是否有工具调用，都清理临时消息</span></span><br><span class="line"><span class="keyword">finally</span>:</span><br><span class="line">    <span class="keyword">while</span> messages <span class="keyword">and</span> messages[<span class="number">-1</span>].get(<span class="string">"_flush_sentinel"</span>) != _sentinel:</span><br><span class="line">        messages.pop()</span><br><span class="line">    <span class="keyword">if</span> messages <span class="keyword">and</span> messages[<span class="number">-1</span>].get(<span class="string">"_flush_sentinel"</span>) == _sentinel:</span><br><span class="line">        messages.pop()</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="第二层：会话历史检索（session-search）"><a href="#第二层：会话历史检索（session-search）" class="headerlink" title="第二层：会话历史检索（session_search）"></a>第二层：会话历史检索（session_search）</h2><p><strong>做什么</strong>：将所有历史对话存入 SQLite + FTS5 全文搜索索引，让 LLM 在遇到”我上次怎么解决这个问题”时，通过 <code>session_search</code> 工具主动检索过去的对话，而不需要用户重复说明背景。<strong>存储内容为完整原始消息，不截断，不摘要</strong>——<code>append_message()</code> 直接将 <code>content</code> 字段原文写入，旧 session 封存后消息一行不动，始终可搜。唯一可能截断的情况是超长工具结果（默认 100000 字符上限，超出后加 <code>[TRUNCATED]</code> 标记，属极端情况）。</p>
+<p><strong>数据库结构</strong>：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 数据库文件实际路径：~/.hermes/state.db（注意：不是 hermes_state.db）</span></span><br><span class="line"><span class="comment">-- hermes_state.py 是源码模块名，对应的数据库文件名为 state.db</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> sessions (</span><br><span class="line">    <span class="keyword">id</span> <span class="built_in">TEXT</span> PRIMARY <span class="keyword">KEY</span>,         <span class="comment">-- UUID v4</span></span><br><span class="line">    <span class="keyword">source</span> <span class="built_in">TEXT</span> <span class="keyword">NOT</span> <span class="literal">NULL</span>,        <span class="comment">-- "cli" / "telegram" / "discord" 等</span></span><br><span class="line">    <span class="keyword">model</span> <span class="built_in">TEXT</span>,</span><br><span class="line">    started_at <span class="built_in">REAL</span> <span class="keyword">NOT</span> <span class="literal">NULL</span>,    <span class="comment">-- Unix 时间戳</span></span><br><span class="line">    ended_at <span class="built_in">REAL</span>,</span><br><span class="line">    system_prompt <span class="built_in">TEXT</span>,          <span class="comment">-- 快照存储（用于续接会话）</span></span><br><span class="line">    parent_session_id <span class="built_in">TEXT</span>,      <span class="comment">-- 压缩链：上下文压缩后新旧会话的链接</span></span><br><span class="line">    title <span class="built_in">TEXT</span>,                  <span class="comment">-- LLM 生成的会话标题（可选，唯一）</span></span><br><span class="line">    input_tokens <span class="built_in">INTEGER</span> <span class="keyword">DEFAULT</span> <span class="number">0</span>,</span><br><span class="line">    output_tokens <span class="built_in">INTEGER</span> <span class="keyword">DEFAULT</span> <span class="number">0</span>,</span><br><span class="line">    estimated_cost_usd <span class="built_in">REAL</span>      <span class="comment">-- 预估费用</span></span><br><span class="line">    <span class="comment">-- ... 更多计费和统计列，共约 25 列</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> messages (</span><br><span class="line">    <span class="keyword">id</span> <span class="built_in">INTEGER</span> PRIMARY <span class="keyword">KEY</span> AUTOINCREMENT,  <span class="comment">-- 同时作为 FTS5 rowid</span></span><br><span class="line">    session_id <span class="built_in">TEXT</span> <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">    <span class="keyword">role</span> <span class="built_in">TEXT</span> <span class="keyword">NOT</span> <span class="literal">NULL</span>,          <span class="comment">-- user / assistant / tool</span></span><br><span class="line">    <span class="keyword">content</span> <span class="built_in">TEXT</span>,                <span class="comment">-- 消息文本（FTS5 索引此列）</span></span><br><span class="line">    <span class="built_in">timestamp</span> <span class="built_in">REAL</span> <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">    tool_calls <span class="built_in">TEXT</span>,             <span class="comment">-- JSON 序列化</span></span><br><span class="line">    reasoning <span class="built_in">TEXT</span>               <span class="comment">-- 推理链文本（v6 新增）</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- FTS5 全文搜索虚拟表</span></span><br><span class="line"><span class="comment">-- ⚠ 注意：FTS5 默认使用 unicode61 tokenizer，对中文连续文本（如"项目结构"）</span></span><br><span class="line"><span class="comment">--   无法识别词边界，整段短语被当作一个 token；搜索子词（如"结构"）可能无法命中。</span></span><br><span class="line"><span class="comment">--   中文搜索建议用空格分隔单字：搜 "项目 结构" 而非 "项目结构"。</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">VIRTUAL</span> <span class="keyword">TABLE</span> messages_fts <span class="keyword">USING</span> fts5(</span><br><span class="line">    <span class="keyword">content</span>,               <span class="comment">-- 消息文本</span></span><br><span class="line">    session_id UNINDEXED,  <span class="comment">-- 所属会话</span></span><br><span class="line">    <span class="keyword">role</span> UNINDEXED,        <span class="comment">-- user/assistant/tool</span></span><br><span class="line">    <span class="built_in">timestamp</span> UNINDEXED</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<p><strong>检索与写入时序</strong>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">[写入]</span><br><span class="line">run_conversation() 结束时：</span><br><span class="line">    _persist_session(messages, conversation_history)</span><br><span class="line">        │</span><br><span class="line">        ├── 增量写入新消息到 messages_fts</span><br><span class="line">        └── 更新 sessions 表（创建时间、模型、标题等）</span><br><span class="line"></span><br><span class="line">[检索]</span><br><span class="line">LLM 调用 session_search(query&#x3D;&quot;上次 Docker 问题&quot;, limit&#x3D;5)</span><br><span class="line">    │</span><br><span class="line">    └── state.db FTS5 查询（跨所有 session 全库搜索，无 session_id 过滤）</span><br><span class="line">            │  SELECT content, session_id, started_at</span><br><span class="line">            │  FROM messages_fts</span><br><span class="line">            │  WHERE content MATCH &#39;Docker 问题&#39;</span><br><span class="line">            │  LIMIT 5</span><br><span class="line">            ▼</span><br><span class="line">        返回相关历史片段 + 时间戳 + 来源平台</span><br><span class="line">        → LLM 直接复用历史上下文，无需用户重新说明</span><br></pre></td></tr></table></figure>
+
+<p><strong>压缩后的 session 链表</strong>：每次上下文压缩时，旧 session 被封存（<code>end_session()</code>），新 session 通过 <code>parent_session_id</code> 链接父会话，形成单向链表。封存后的旧 session 消息一行不动，<code>session_search</code> 的全库搜索可以命中所有历史 session 的原始内容——即使已经历多次压缩，第一个 session 的完整原始消息仍然可搜。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">session_A（原始）</span><br><span class="line">  ├── 存有 N 条完整原始消息（永久冻结）</span><br><span class="line">  ├── ended_at &#x3D; &lt;时间戳&gt;，end_reason &#x3D; &quot;compression&quot;</span><br><span class="line">  └── parent_session_id &#x3D; NULL（根节点）</span><br><span class="line">         ↑ parent_session_id</span><br><span class="line">session_B（第一次压缩续接）</span><br><span class="line">  ├── 存有压缩后的续接消息</span><br><span class="line">  └── parent_session_id &#x3D; session_A</span><br><span class="line">         ↑ parent_session_id</span><br><span class="line">session_C（进行中）</span><br><span class="line">  ├── ended_at &#x3D; NULL（进行中）</span><br><span class="line">  └── parent_session_id &#x3D; session_B</span><br></pre></td></tr></table></figure>
+
+<p><strong>对话数据会永久保存吗？有自动清理吗？</strong> 会话数据<strong>默认永久保留，没有自动 TTL 清理</strong>。用户需手动调用清理命令（只删除已结束的会话，进行中的 active session 不受影响；被删除的 session 的 child sessions 会被孤立化而非级联删除）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 清理 90 天前已结束的会话（默认值）</span></span><br><span class="line">hermes sessions prune --older-than 90</span><br><span class="line"></span><br><span class="line"><span class="comment"># 清理 30 天前的会话</span></span><br><span class="line">hermes sessions prune --older-than 30 --yes</span><br><span class="line"></span><br><span class="line"><span class="comment"># 只清理某个平台来源的旧会话</span></span><br><span class="line">hermes sessions prune --older-than 60 --<span class="built_in">source</span> telegram</span><br></pre></td></tr></table></figure>
+
+<p><strong>多平台（CLI、Telegram、Discord）之间的记忆是共享还是隔离的？</strong> 默认<strong>共享</strong>（同一 profile 下所有平台读取相同的 <code>HERMES_HOME</code>）。<code>sessions</code> 表中有 <code>source</code> 字段区分来源，<code>session_search</code> 默认跨所有 source 搜索，也可指定 source 过滤。若要隔离，为不同平台使用不同 profile（<code>hermes -p telegram_bot gateway start</code>）即可做到记忆、历史、配置完全独立。</p>
+<hr>
+<h3 id="外部记忆提供商（可选扩展层）"><a href="#外部记忆提供商（可选扩展层）" class="headerlink" title="外部记忆提供商（可选扩展层）"></a>外部记忆提供商（可选扩展层）</h3><h3 id="通过-agent-memory-manager-py-的-MemoryManager-统一管理插件式外部记忆："><a href="#通过-agent-memory-manager-py-的-MemoryManager-统一管理插件式外部记忆：" class="headerlink" title="通过 agent/memory_manager.py 的 MemoryManager 统一管理插件式外部记忆："></a>通过 <code>agent/memory_manager.py</code> 的 <code>MemoryManager</code> 统一管理插件式外部记忆：</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">~&#x2F;.hermes&#x2F;plugins&#x2F;memory&#x2F;</span><br><span class="line">├── mem0&#x2F;           # mem0ai 向量记忆（按语义相似度检索）</span><br><span class="line">├── honcho&#x2F;         # Honcho 个性化记忆（含 honcho_search 等工具）</span><br><span class="line">├── retaindb&#x2F;       # RetainDB 结构化本地记忆</span><br><span class="line">├── supermemory&#x2F;    # Supermemory 云端通用记忆</span><br><span class="line">├── holographic&#x2F;    # 本地高维向量存储（语义检索，非 FTS5 关键词）</span><br><span class="line">├── byterover&#x2F;      # 本地 CLI brv 工具</span><br><span class="line">├── hindsight&#x2F;      # 本地 CLI hindsight 工具（事后回顾）</span><br><span class="line">└── openviking&#x2F;     # 开源向量记忆（自托管，隐私优先）</span><br></pre></td></tr></table></figure>
+
+<p><strong>与内置记忆的关键区别</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>内置记忆（MEMORY.md）</th>
+<th>外部记忆（Mem0 等）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>注入位置</td>
+<td>system prompt（冻结快照）</td>
+<td>user 消息末尾（动态 prefetch）</td>
+</tr>
+<tr>
+<td>检索方式</td>
+<td>全量注入</td>
+<td>按当前问题语义相似度检索</td>
+</tr>
+<tr>
+<td>更新时机</td>
+<td>LLM 主动调用 memory 工具</td>
+<td>提供商 SDK 自动管理</td>
+</tr>
+<tr>
+<td>缓存友好</td>
+<td>是（system 前缀不变）</td>
+<td>是（注入 user 消息不影响 system）</td>
+</tr>
+</tbody></table>
+<p><strong>外部记忆为什么注入 user 消息而非 system prompt？</strong></p>
+<p>外部记忆的 recall 结果是动态的（每次请求不同），若注入 system prompt 则每轮都会破坏 Anthropic prefix cache。注入到当前轮 user 消息末尾，system 前缀保持稳定。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># run_agent.py：整轮只 prefetch 一次</span></span><br><span class="line">_ext_prefetch_cache = memory_manager.prefetch_all(original_user_message)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 组装 api_messages 时动态注入（不污染 messages）</span></span><br><span class="line"><span class="keyword">if</span> idx == current_turn_user_idx <span class="keyword">and</span> _ext_prefetch_cache:</span><br><span class="line">    _fenced = build_memory_context_block(_ext_prefetch_cache)</span><br><span class="line">    api_msg[<span class="string">"content"</span>] = base_content + <span class="string">"\n\n"</span> + _fenced</span><br></pre></td></tr></table></figure>
+
+<p><strong>外部 Provider 与内置记忆是并行运行还是互斥？</strong> 两者<strong>并行运行，但外部 Provider 互斥注册</strong>：内置记忆（<code>BuiltinMemoryProvider</code>）始终先注册、不可移除；外部 Provider 任意时刻最多允许一个（尝试注册第二个会发出警告并被拒绝，以防止工具 schema 膨胀和记忆后端冲突）。两种记忆同时对 LLM 可见，各司其职：内置记忆通过 <code>memory</code> 工具由 LLM 主动调用，注入 system prompt 冻结快照；外部 Provider 通过 <code>prefetch/sync_turn</code> 后台运行，注入 user 消息末尾动态上下文。</p>
+<hr>
+<h3 id="MemoryProvider-接口与-MemoryManager-架构"><a href="#MemoryProvider-接口与-MemoryManager-架构" class="headerlink" title="MemoryProvider 接口与 MemoryManager 架构"></a>MemoryProvider 接口与 MemoryManager 架构</h3><h4 id="MemoryProvider-抽象基类（agent-memory-provider-py）"><a href="#MemoryProvider-抽象基类（agent-memory-provider-py）" class="headerlink" title="MemoryProvider 抽象基类（agent/memory_provider.py）"></a>MemoryProvider 抽象基类（agent/memory_provider.py）</h4><p>所有外部记忆提供商都必须实现 <code>MemoryProvider</code> 抽象基类，定义统一接口：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># agent/memory_provider.py</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MemoryProvider</span><span class="params">(ABC)</span>:</span></span><br><span class="line"><span class="meta">    @property</span></span><br><span class="line"><span class="meta">    @abstractmethod</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">name</span><span class="params">(self)</span> -&gt; str:</span> ...          <span class="comment"># 提供商名称（如 "mem0"）</span></span><br><span class="line"></span><br><span class="line"><span class="meta">    @abstractmethod</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">is_available</span><span class="params">(self)</span> -&gt; bool:</span> ... <span class="comment"># 环境变量 / 依赖检查</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">initialize</span><span class="params">(self, session_id: str, **kwargs)</span> -&gt; <span class="keyword">None</span>:</span></span><br><span class="line">        <span class="string">"""会话开始时调用，初始化上下文（可选实现）"""</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">system_prompt_block</span><span class="params">(self)</span> -&gt; str:</span></span><br><span class="line">        <span class="string">"""返回注入 system prompt 的静态说明文字（如提供商名称/使用建议）"""</span></span><br><span class="line">        <span class="keyword">return</span> <span class="string">""</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">prefetch</span><span class="params">(self, query: str, *, session_id: str = <span class="string">""</span>)</span> -&gt; str:</span></span><br><span class="line">        <span class="string">"""每轮 API 调用前：同步拉取相关记忆，返回文本块（阻塞）"""</span></span><br><span class="line">        <span class="keyword">return</span> <span class="string">""</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">queue_prefetch</span><span class="params">(self, query: str, *, session_id: str = <span class="string">""</span>)</span> -&gt; <span class="keyword">None</span>:</span></span><br><span class="line">        <span class="string">"""本轮结束后：后台预加载下一轮可能用到的记忆（非阻塞）"""</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">sync_turn</span><span class="params">(self, user_content: str, assistant_content: str,</span></span></span><br><span class="line"><span class="function"><span class="params">                  *, session_id: str = <span class="string">""</span>)</span> -&gt; <span class="keyword">None</span>:</span></span><br><span class="line">        <span class="string">"""每轮对话结束后：将本轮内容异步写入提供商（非阻塞）"""</span></span><br><span class="line"></span><br><span class="line"><span class="meta">    @abstractmethod</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_tool_schemas</span><span class="params">(self)</span> -&gt; List[Dict[str, Any]]:</span></span><br><span class="line">        <span class="string">"""返回提供商暴露给 LLM 的工具 Schema 列表（无工具则返回 []）"""</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">handle_tool_call</span><span class="params">(self, tool_name: str, tool_args: dict, **kw)</span> -&gt; str:</span></span><br><span class="line">        <span class="string">"""处理 LLM 发出的工具调用（仅当 get_tool_schemas 非空时需实现）"""</span></span><br><span class="line">        <span class="keyword">return</span> <span class="string">""</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">shutdown</span><span class="params">(self)</span> -&gt; <span class="keyword">None</span>:</span></span><br><span class="line">        <span class="string">"""会话结束时清理资源（可选实现）"""</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="MemoryManager-编排层（agent-memory-manager-py）"><a href="#MemoryManager-编排层（agent-memory-manager-py）" class="headerlink" title="MemoryManager 编排层（agent/memory_manager.py）"></a>MemoryManager 编排层（agent/memory_manager.py）</h4><p><code>MemoryManager</code> 统一管理多个 Provider 的生命周期：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># agent/memory_manager.py</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MemoryManager</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">add_provider</span><span class="params">(self, provider: MemoryProvider)</span>:</span></span><br><span class="line">        <span class="string">"""注册一个外部记忆提供商"""</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">initialize_all</span><span class="params">(self, session_id: str, **kwargs)</span>:</span></span><br><span class="line">        <span class="string">"""初始化所有已注册 Provider"""</span></span><br><span class="line">        <span class="keyword">for</span> p <span class="keyword">in</span> self._providers:</span><br><span class="line">            p.initialize(session_id, **kwargs)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">build_system_prompt</span><span class="params">(self)</span> -&gt; str:</span></span><br><span class="line">        <span class="string">"""聚合所有 Provider 的 system_prompt_block（注入 system prompt）"""</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">prefetch_all</span><span class="params">(self, query: str, *, session_id: str = <span class="string">""</span>)</span> -&gt; str:</span></span><br><span class="line">        <span class="string">"""阻塞式聚合所有 Provider 的 prefetch 结果（每轮 API 调用前）"""</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">queue_prefetch_all</span><span class="params">(self, query: str, *, session_id: str = <span class="string">""</span>)</span> -&gt; <span class="keyword">None</span>:</span></span><br><span class="line">        <span class="string">"""并发触发所有 Provider 的后台预加载（每轮结束后）"""</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">sync_all</span><span class="params">(self, user_content: str, assistant_content: str,</span></span></span><br><span class="line"><span class="function"><span class="params">                 *, session_id: str = <span class="string">""</span>)</span> -&gt; <span class="keyword">None</span>:</span></span><br><span class="line">        <span class="string">"""并发触发所有 Provider 的后台写入（每轮结束后）"""</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_all_tool_schemas</span><span class="params">(self)</span> -&gt; List[Dict[str, Any]]:</span></span><br><span class="line">        <span class="string">"""聚合所有 Provider 的工具 Schema，合并进 tool_schemas 列表"""</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>prefetch_all 的超时与容错</strong>：<code>prefetch_all()</code> 本身是同步调用，超时控制在各 Provider 的 <code>prefetch()</code> 实现内部（可通过 <code>auxiliary.{task}.timeout</code> 配置，默认 30 秒）。采用<strong>防御性调用</strong>——单个 Provider 失败（超时/网络错误）不阻塞其他 Provider，<code>except Exception</code> 捕获后记录 debug 日志继续下一个 Provider，不影响 API 调用主流程：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># agent/memory_manager.py - prefetch_all()</span></span><br><span class="line"><span class="keyword">for</span> provider <span class="keyword">in</span> self._providers:</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        result = provider.prefetch(query, session_id=session_id)</span><br><span class="line">        <span class="keyword">if</span> result <span class="keyword">and</span> result.strip():</span><br><span class="line">            parts.append(result)</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        logger.debug(<span class="string">"Memory provider '%s' prefetch failed (non-fatal): %s"</span>, provider.name, e)</span><br><span class="line">        <span class="comment"># 吞掉异常，继续下一个 Provider</span></span><br><span class="line"><span class="keyword">return</span> <span class="string">"\n\n"</span>.join(parts)  <span class="comment"># 汇总所有成功结果</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="可用的外部记忆提供商一览"><a href="#可用的外部记忆提供商一览" class="headerlink" title="可用的外部记忆提供商一览"></a>可用的外部记忆提供商一览</h3><p>外部提供商默认<strong>不启用</strong>，任意时刻只能激活其中<strong>一个</strong>（内置 MEMORY.md 始终并行运行，不被替换）。满足对应前置条件后，通过 <code>config.yaml</code> 的嵌套字段激活：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ~/.hermes/config.yaml（注意：使用嵌套的 memory.provider，而非旧版扁平字段）</span></span><br><span class="line"><span class="attr">memory:</span></span><br><span class="line">  <span class="attr">provider:</span> <span class="string">mem0</span>   <span class="comment"># 或 honcho / retaindb / supermemory / byterover / holographic / hindsight / openviking</span></span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>提供商</th>
+<th>存储类型</th>
+<th>前置条件</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>mem0</td>
+<td>云端向量数据库</td>
+<td>MEM0_API_KEY</td>
+<td>按语义相似度检索；sync_turn 自动写入；第一轮 prefetch 为空（首轮无法获得外部记忆）</td>
+</tr>
+<tr>
+<td>honcho</td>
+<td>云端用户画像</td>
+<td>HONCHO_API_KEY</td>
+<td>专注用户偏好建模；提供 honcho_search、honcho_context 等 5 个工具给 LLM 主动检索</td>
+</tr>
+<tr>
+<td>holographic</td>
+<td>本地高维向量存储</td>
+<td>无（本地）</td>
+<td>语义向量检索（非 FTS5 关键词）；依赖 LLM 显式调用 holographic_memory 工具写入；sync_turn 为空操作</td>
+</tr>
+<tr>
+<td>retaindb</td>
+<td>本地 SQLite</td>
+<td>无（本地）</td>
+<td>结构化本地记忆；支持 key-value 检索</td>
+</tr>
+<tr>
+<td>supermemory</td>
+<td>云端</td>
+<td>SUPERMEMORY_API_KEY</td>
+<td>通用记忆 API；支持按 query 搜索</td>
+</tr>
+<tr>
+<td>byterover</td>
+<td>本地 CLI（brv）</td>
+<td>brv 命令行工具</td>
+<td>本地 CLI 工具；sync_turn 后台执行 brv curate 命令写入对话摘要</td>
+</tr>
+<tr>
+<td>hindsight</td>
+<td>本地 CLI（hindsight）</td>
+<td>hindsight 命令行工具</td>
+<td>本地 CLI 工具；事后回顾对话提取知识片段</td>
+</tr>
+<tr>
+<td>openviking</td>
+<td>本地/自托管向量存储</td>
+<td>无（开源自托管）</td>
+<td>开源向量记忆；隐私优先；适合不希望数据外传的场景</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="完整生命周期时序图"><a href="#完整生命周期时序图" class="headerlink" title="完整生命周期时序图"></a>完整生命周期时序图</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">会话开始（AIAgent.__init__）</span><br><span class="line">    │</span><br><span class="line">    ├── 加载外部 Provider（load_memory_provider）</span><br><span class="line">    │       扫描 plugins&#x2F;memory&#x2F; 子目录 → 读取 plugin.yaml</span><br><span class="line">    │       检查 is_available()（环境变量&#x2F;依赖）</span><br><span class="line">    │</span><br><span class="line">    ├── memory_manager.initialize_all(session_id)</span><br><span class="line">    │       所有 Provider.initialize()</span><br><span class="line">    │</span><br><span class="line">    └── 构建 system prompt（prompt_builder.py）</span><br><span class="line">            内置记忆快照：MEMORY.md + USER.md → system prompt（冻结）</span><br><span class="line">            外部 Provider：memory_manager.build_system_prompt() → system prompt 末尾</span><br><span class="line"></span><br><span class="line">每一轮对话（run_conversation 循环）：</span><br><span class="line">    │</span><br><span class="line">    ├── [轮前] memory_manager.prefetch_all(user_query)</span><br><span class="line">    │       返回聚合文本 → build_memory_context_block()</span><br><span class="line">    │       注入当前轮 user 消息末尾（不修改 messages 原始列表）</span><br><span class="line">    │       ⚠ 注意：第一轮 prefetch 结果来自上轮 queue_prefetch 缓存，初次运行为空</span><br><span class="line">    │</span><br><span class="line">    ├── [API 调用] client.chat.completions.create(...)</span><br><span class="line">    │</span><br><span class="line">    ├── [工具调用循环] handle_function_call(tool_name, tool_args)</span><br><span class="line">    │       memory 工具 → 写入 MEMORY.md &#x2F; USER.md（内置）</span><br><span class="line">    │       Provider 工具 → memory_manager.handle_tool_call()（外部）</span><br><span class="line">    │       session_search → state.db FTS5 检索（会话历史）</span><br><span class="line">    │</span><br><span class="line">    └── [轮后]</span><br><span class="line">            memory_manager.sync_all(user_msg, assistant_msg)  # 后台写入外部 Provider</span><br><span class="line">            memory_manager.queue_prefetch_all(user_msg)       # 后台预加载下一轮记忆</span><br><span class="line">            _persist_session(messages)                        # 写入 state.db</span><br><span class="line"></span><br><span class="line">上下文压缩前（context_compressor.py）：</span><br><span class="line">    │</span><br><span class="line">    └── flush_memories()</span><br><span class="line">            向 messages 末尾追加临时 flush 提示（含 sentinel 边界标记）</span><br><span class="line">            调用辅助 LLM（仅暴露 memory 工具）</span><br><span class="line">            LLM 主动调用 memory 工具 → 持久化重要信息到磁盘</span><br><span class="line">            pop 临时消息（不污染原始 messages）</span><br><span class="line"></span><br><span class="line">会话结束：</span><br><span class="line">    └── memory_manager.shutdown_all()</span><br><span class="line">            所有 Provider.shutdown()（清理资源）</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="各轮次记忆行为详解"><a href="#各轮次记忆行为详解" class="headerlink" title="各轮次记忆行为详解"></a>各轮次记忆行为详解</h2><p><strong>结论先行</strong>：首轮和后续轮次在记忆行为上有三处关键差异——外部 Provider prefetch 首轮为空、SQLite 首轮无可用历史（但 <code>session_search</code> 随时可调）、<code>queue_prefetch</code> 首轮后才开始预热。下表和逐轮时序图给出完整说明。</p>
+<table>
+<thead>
+<tr>
+<th>机制</th>
+<th>第 1 轮（首轮）</th>
+<th>第 2 轮</th>
+<th>第 N 轮（稳态）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>外部 Provider prefetch</td>
+<td>空（无上轮 queue_prefetch 缓存）</td>
+<td>返回第 1 轮结束时 queue_prefetch 预热的结果</td>
+<td>返回上一轮结束时预热的结果（完整缓存命中）</td>
+</tr>
+<tr>
+<td>SQLite FTS5（session_search）</td>
+<td>可调用（检索历史 session）；本轮消息尚未写入，当前轮不可搜</td>
+<td>第 1 轮消息已持久化，可搜；LLM 主动调用时才触发</td>
+<td>前 N-1 轮消息全部可搜；LLM 按需调用</td>
+</tr>
+<tr>
+<td>_persist_session（写入 SQLite）</td>
+<td>本轮结束后写入；写入前当前轮消息不可搜</td>
+<td>本轮结束后增量写入（仅追加新消息）</td>
+<td>同上，增量追加</td>
+</tr>
+<tr>
+<td>内置记忆（MEMORY.md）</td>
+<td>已注入 system prompt（冻结快照），LLM 从第一条消息起即可读取</td>
+<td>system prompt 不变；LLM 写入的新记忆仍不在快照中</td>
+<td>同上；新记忆下次会话才进快照</td>
+</tr>
+<tr>
+<td>外部 Provider sync_turn（写入）</td>
+<td>本轮结束后后台线程写入；第 2 轮 prefetch 可能已含本轮内容（取决于写入速度）</td>
+<td>同上</td>
+<td>同上（后台异步，不阻塞主流程）</td>
+</tr>
+</tbody></table>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line">────────────────────────────────────────────────────────────────</span><br><span class="line">会话开始（AIAgent.__init__）</span><br><span class="line">  MEMORY.md + USER.md → 冻结注入 system prompt</span><br><span class="line">  外部 Provider initialize()</span><br><span class="line">────────────────────────────────────────────────────────────────</span><br><span class="line"></span><br><span class="line">【第 1 轮】</span><br><span class="line">  用户发送消息</span><br><span class="line">  │</span><br><span class="line">  ├─ prefetch_all(user_msg)</span><br><span class="line">  │    → _prefetch_cache 为空（无上轮预热）</span><br><span class="line">  │    → 外部记忆注入 &#x3D; &quot;&quot;（首轮无外部记忆）</span><br><span class="line">  │</span><br><span class="line">  ├─ API 调用（携带 system prompt 冻结快照 + 空外部记忆）</span><br><span class="line">  │    LLM 可主动调用 session_search → 检索历史 session</span><br><span class="line">  │    ⚠ 当前轮消息尚未写入 SQLite，本轮内容不可搜</span><br><span class="line">  │    LLM 可主动调用 memory 工具 → 写入 MEMORY.md（当前快照不更新）</span><br><span class="line">  │</span><br><span class="line">  └─ 轮后</span><br><span class="line">       sync_all()          → 后台写入外部 Provider（mem0 等）</span><br><span class="line">       queue_prefetch_all()→ 后台预热：以本轮 user_msg 为 query 预加载下一轮记忆</span><br><span class="line">       _persist_session()  → 第 1 轮消息写入 SQLite（第 2 轮起可搜）</span><br><span class="line"></span><br><span class="line">────────────────────────────────────────────────────────────────</span><br><span class="line"></span><br><span class="line">【第 2 轮】</span><br><span class="line">  用户发送消息</span><br><span class="line">  │</span><br><span class="line">  ├─ prefetch_all(user_msg)</span><br><span class="line">  │    → 返回第 1 轮 queue_prefetch 预热的缓存结果</span><br><span class="line">  │    → 外部记忆注入到本轮 user 消息末尾（首次有内容）</span><br><span class="line">  │</span><br><span class="line">  ├─ API 调用</span><br><span class="line">  │    第 1 轮消息已在 SQLite，LLM 调用 session_search 可检索</span><br><span class="line">  │    LLM 可读取注入的外部记忆上下文</span><br><span class="line">  │</span><br><span class="line">  └─ 轮后（同第 1 轮逻辑，循环执行）</span><br><span class="line"></span><br><span class="line">────────────────────────────────────────────────────────────────</span><br><span class="line"></span><br><span class="line">【第 N 轮（稳态）】</span><br><span class="line">  prefetch_all    → 上轮 queue_prefetch 预热结果（完整缓存命中）</span><br><span class="line">  session_search  → 前 N-1 轮消息全部可搜（LLM 按需调用）</span><br><span class="line">  内置记忆快照    → 始终为会话开始时的冻结版本（不随写入更新）</span><br><span class="line">  sync_turn       → 后台异步写入，不阻塞当前轮</span><br><span class="line">  _persist_session→ 本轮结束后增量追加到 SQLite</span><br><span class="line"></span><br><span class="line">────────────────────────────────────────────────────────────────</span><br><span class="line"></span><br><span class="line">【上下文压缩触发时（任意轮次）】</span><br><span class="line">  flush_memories()    → 辅助 LLM 扫描对话，按需写入 MEMORY.md</span><br><span class="line">  _compress_context() → 压缩 messages + 创建新 session（旧 session 冻结保留）</span><br><span class="line">  self.session_id 换新，Agent 对象原地复用，不重建</span><br></pre></td></tr></table></figure>
+
+<p><strong>关于”首轮不会调用 SQLite FTS5”</strong>：这个说法需要拆分理解。<code>session_search</code> 是工具，首轮 LLM 完全可以主动调用它检索历史 session——只要 LLM 判断”需要回忆过去”就会触发。首轮”没有”的，是<strong>当前轮自身的消息在 SQLite 中不可搜</strong>（因为 <code>_persist_session</code> 在轮后才执行）；以及<strong>外部 Provider prefetch 返回空</strong>（因为没有上轮的 <code>queue_prefetch</code> 缓存）。这是两件完全不同的事。</p>
+<hr>
+<h2 id="FAQ"><a href="#FAQ" class="headerlink" title="FAQ"></a>FAQ</h2><h3 id="会话历史的持久化与-Session-链表"><a href="#会话历史的持久化与-Session-链表" class="headerlink" title="会话历史的持久化与 Session 链表"></a>会话历史的持久化与 Session 链表</h3><p><strong>结论</strong>：SQLite 里存的是”混合版本”——既有压缩前的完整原始对话，也有压缩后的续接对话。关键在于压缩时只创建新 session、旧 session 只打时间戳标记不删任何消息。</p>
+<h3 id="压缩时的-Session-封存机制"><a href="#压缩时的-Session-封存机制" class="headerlink" title="压缩时的 Session 封存机制"></a>压缩时的 Session 封存机制</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># hermes_state.py</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">end_session</span><span class="params">(self, session_id: str, end_reason: str)</span> -&gt; <span class="keyword">None</span>:</span></span><br><span class="line">    <span class="string">"""Mark a session as ended."""</span></span><br><span class="line">    conn.execute(</span><br><span class="line">        <span class="string">"UPDATE sessions SET ended_at = ?, end_reason = ? WHERE id = ?"</span>,</span><br><span class="line">        (time.time(), end_reason, session_id),  <span class="comment"># 只写两个字段，消息一条不动</span></span><br><span class="line">    )</span><br></pre></td></tr></table></figure>
+
+<p>每次压缩时，<code>_compress_context()</code> 执行 session 拆分：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># run_agent.py</span></span><br><span class="line">self._session_db.end_session(self.session_id, <span class="string">"compression"</span>)  <span class="comment"># 旧 session 封存（保留全量消息）</span></span><br><span class="line">old_session_id = self.session_id</span><br><span class="line"></span><br><span class="line">self.session_id = new_session_id                              <span class="comment"># 生成新 session_id</span></span><br><span class="line">self._session_db.create_session(</span><br><span class="line">    session_id=self.session_id,</span><br><span class="line">    parent_session_id=old_session_id,                         <span class="comment"># 用 parent_session_id 链接父会话</span></span><br><span class="line">)</span><br><span class="line">self._last_flushed_db_idx = <span class="number">0</span>                                 <span class="comment"># 新 session 游标归零</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="压缩后是新建-Agent-还是复用原-Agent？"><a href="#压缩后是新建-Agent-还是复用原-Agent？" class="headerlink" title="压缩后是新建 Agent 还是复用原 Agent？"></a>压缩后是新建 Agent 还是复用原 Agent？</h3><p><strong>完全复用原 Agent 对象</strong>，<code>self</code> 不变，只有四处状态变化：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># _compress_context() 内部</span></span><br><span class="line">self.context_compressor.compress(messages)  <span class="comment"># ① 内存中压缩 messages 列表</span></span><br><span class="line">self._session_db.end_session(旧id)           <span class="comment"># ② SQLite：旧 session 封存</span></span><br><span class="line">self.session_id = 新id                       <span class="comment"># ③ 只改这一个属性</span></span><br><span class="line">self._session_db.create_session(新id, parent_session_id=旧id)</span><br><span class="line">self._last_flushed_db_idx = <span class="number">0</span>               <span class="comment"># ④ 重置写入游标</span></span><br></pre></td></tr></table></figure>
+
+<p>调用方接收返回值后<strong>原地替换局部变量</strong>，Agent 对象本身不重建：<strong>不需要重走 **`</strong>AIAgent.<strong>init</strong>()<strong>`</strong>，不重新加载工具，不重建 system prompt，不重新注册 Provider**。是原 Agent 对象在原循环内继续跑，只是 <code>messages</code> 这个局部变量被换成了更短的列表，只有 <code>self.session_id</code> 换了一个新 id。</p>
+<h3 id="上下文超限的三道防线"><a href="#上下文超限的三道防线" class="headerlink" title="上下文超限的三道防线"></a>上下文超限的三道防线</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">run_conversation() 主循环</span><br><span class="line">│</span><br><span class="line">├── [进入前] 预检压缩（preflight）</span><br><span class="line">│       messages 过长 → _compress_context() → messages 缩短</span><br><span class="line">│       self.session_id 换新，其余 Agent 状态不变</span><br><span class="line">│       继续进入主循环 ↓</span><br><span class="line">│</span><br><span class="line">├── [每轮结束] 正常压缩（主循环内，50% 阈值触发）</span><br><span class="line">│       API 返回 prompt_tokens → should_compress() → True</span><br><span class="line">│       → _compress_context() → messages 缩短，session_id 换新</span><br><span class="line">│       → continue（同一个循环，同一个 Agent 继续）</span><br><span class="line">│</span><br><span class="line">└── [API 报错] 强制压缩（硬溢出兜底）</span><br><span class="line">        413&#x2F;context-too-large → 先降档（调低 context_length）</span><br><span class="line">        → 强制 _compress_context() → 重试当前轮 API 调用</span><br><span class="line">        → 超过 max_compression_attempts → 返回 error，终止</span><br></pre></td></tr></table></figure>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+    
+    
+
+    
+      
+<div class="post-nav book-nav">
+  
+    <div class="post-nav-prev post-nav-item">
+      <a href="/books/hermes/04-技能系统-注册发现与调用/" rel="prev" title="四、技能系统-注册发现与调用">
+        <span class="post-nav-direction">上一章</span>
+        <span class="post-nav-title">四、技能系统-注册发现与调用</span>
+        <i class="fa fa-chevron-left"></i>
+      </a>
+    </div>
+  
+
+  
+    <div class="post-nav-next post-nav-item">
+      <a href="/books/hermes/06-上下文压缩/" rel="next" title="六、上下文压缩">
+        <span class="post-nav-direction">下一篇</span>
+        <span class="post-nav-title">六、上下文压缩</span>
+        <i class="fa fa-chevron-right"></i>
+      </a>
+    </div>
+  
+</div>
+
+
+    
+
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+     
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.gif"
+                alt="awabuda" />
+            
+              <p class="site-author-name" itemprop="name">awabuda</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/awabuda" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i></a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:awabdua@163.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i></a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#五、记忆模块三层架构"><span class="nav-number">1.</span> <span class="nav-text">五、记忆模块三层架构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#三层记忆架构全览"><span class="nav-number">1.1.</span> <span class="nav-text">三层记忆架构全览</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第一层：内置持久记忆（MEMORY-md-USER-md）"><span class="nav-number">1.2.</span> <span class="nav-text">第一层：内置持久记忆（MEMORY.md &#x2F; USER.md）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#自动记忆-Flush（防止信息在压缩中丢失）"><span class="nav-number">1.2.1.</span> <span class="nav-text">自动记忆 Flush（防止信息在压缩中丢失）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第二层：会话历史检索（session-search）"><span class="nav-number">1.3.</span> <span class="nav-text">第二层：会话历史检索（session_search）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#外部记忆提供商（可选扩展层）"><span class="nav-number">1.3.1.</span> <span class="nav-text">外部记忆提供商（可选扩展层）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#通过-agent-memory-manager-py-的-MemoryManager-统一管理插件式外部记忆："><span class="nav-number">1.3.2.</span> <span class="nav-text">通过 agent&#x2F;memory_manager.py 的 MemoryManager 统一管理插件式外部记忆：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MemoryProvider-接口与-MemoryManager-架构"><span class="nav-number">1.3.3.</span> <span class="nav-text">MemoryProvider 接口与 MemoryManager 架构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#MemoryProvider-抽象基类（agent-memory-provider-py）"><span class="nav-number">1.3.3.1.</span> <span class="nav-text">MemoryProvider 抽象基类（agent&#x2F;memory_provider.py）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#MemoryManager-编排层（agent-memory-manager-py）"><span class="nav-number">1.3.3.2.</span> <span class="nav-text">MemoryManager 编排层（agent&#x2F;memory_manager.py）</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可用的外部记忆提供商一览"><span class="nav-number">1.3.4.</span> <span class="nav-text">可用的外部记忆提供商一览</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#完整生命周期时序图"><span class="nav-number">1.4.</span> <span class="nav-text">完整生命周期时序图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#各轮次记忆行为详解"><span class="nav-number">1.5.</span> <span class="nav-text">各轮次记忆行为详解</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FAQ"><span class="nav-number">1.6.</span> <span class="nav-text">FAQ</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#会话历史的持久化与-Session-链表"><span class="nav-number">1.6.1.</span> <span class="nav-text">会话历史的持久化与 Session 链表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#压缩时的-Session-封存机制"><span class="nav-number">1.6.2.</span> <span class="nav-text">压缩时的 Session 封存机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#压缩后是新建-Agent-还是复用原-Agent？"><span class="nav-number">1.6.3.</span> <span class="nav-text">压缩后是新建 Agent 还是复用原 Agent？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#上下文超限的三道防线"><span class="nav-number">1.6.4.</span> <span class="nav-text">上下文超限的三道防线</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+      
+        <div>
+  <canvas id="canvasDiyBlock" style="width:60%;">当前浏览器不支持canvas，请更换浏览器后再试</canvas>
+  <script>
+    (function () {
+
+      var digit = [
+        [
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 1, 1, 0, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 0, 1, 1, 0],
+          [0, 0, 1, 1, 1, 0, 0]
+        ], //0
+        [
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 1, 1, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [1, 1, 1, 1, 1, 1, 1]
+        ], //1
+        [
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 1, 1, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 1, 1, 1, 1, 1]
+        ], //2
+        [
+          [1, 1, 1, 1, 1, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //3
+        [
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 1, 0],
+          [0, 0, 1, 1, 1, 1, 0],
+          [0, 1, 1, 0, 1, 1, 0],
+          [1, 1, 0, 0, 1, 1, 0],
+          [1, 1, 1, 1, 1, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 1, 1]
+        ], //4
+        [
+          [1, 1, 1, 1, 1, 1, 1],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 1, 1, 1, 1, 0],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //5
+        [
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 1, 1, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 0, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //6
+        [
+          [1, 1, 1, 1, 1, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0]
+        ], //7
+        [
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //8
+        [
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 1, 1, 0, 0, 0, 0]
+        ], //9
+        [
+          [0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0]
+        ] //:
+      ];
+
+      var canvas = document.getElementById('canvasDiyBlock');
+      if (canvas.getContext) {
+        var cxt = canvas.getContext('2d');
+        //声明canvas的宽高
+        var H = 100,
+          W = 700;
+        canvas.height = H;
+        canvas.width = W;
+        cxt.fillStyle = '#f00';
+        cxt.fillRect(10, 10, 50, 50);
+
+        //存储时间数据
+        var data = [];
+        //存储运动的小球
+        var balls = [];
+        //设置粒子半径
+        var R = canvas.height / 20 - 1;
+        (function () {
+          var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+          //存储时间数字，由十位小时、个位小时、冒号、十位分钟、个位分钟、冒号、十位秒钟、个位秒钟这7个数字组成
+          data.push(temp[1], temp[2], 10, temp[3], temp[4], 10, temp[5], temp[6]);
+        })();
+
+        /*生成点阵数字*/
+        function renderDigit(index, num) {
+          for (var i = 0; i < digit[num].length; i++) {
+            for (var j = 0; j < digit[num][i].length; j++) {
+              if (digit[num][i][j] == 1) {
+                cxt.beginPath();
+                cxt.arc(14 * (R + 2) * index + j * 2 * (R + 1) + (R + 1), i * 2 * (R + 1) + (R + 1), R, 0, 2 * Math
+                  .PI);
+                cxt.closePath();
+                cxt.fill();
+              }
+            }
+          }
+        }
+
+        /*更新时钟*/
+        function updateDigitTime() {
+          var changeNumArray = [];
+          var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+          var NewData = [];
+          NewData.push(temp[1], temp[2], 10, temp[3], temp[4], 10, temp[5], temp[6]);
+          for (var i = data.length - 1; i >= 0; i--) {
+            //时间发生变化
+            if (NewData[i] !== data[i]) {
+              //将变化的数字值和在data数组中的索引存储在changeNumArray数组中
+              changeNumArray.push(i + '_' + (Number(data[i]) + 1) % 10);
+            }
+          }
+          //增加小球
+          for (var i = 0; i < changeNumArray.length; i++) {
+            addBalls.apply(this, changeNumArray[i].split('_'));
+          }
+          data = NewData.concat();
+        }
+
+        /*更新小球状态*/
+        function updateBalls() {
+          for (var i = 0; i < balls.length; i++) {
+            balls[i].stepY += balls[i].disY;
+            balls[i].x += balls[i].stepX;
+            balls[i].y += balls[i].stepY;
+            if (balls[i].x > W + R || balls[i].y > H + R) {
+              balls.splice(i, 1);
+              i--;
+            }
+          }
+        }
+
+        /*增加要运动的小球*/
+        function addBalls(index, num) {
+          var numArray = [1, 2, 3];
+          var colorArray = ["#3BE", "#09C", "#A6C", "#93C", "#9C0", "#690", "#FB3", "#F80", "#F44", "#C00"];
+          for (var i = 0; i < digit[num].length; i++) {
+            for (var j = 0; j < digit[num][i].length; j++) {
+              if (digit[num][i][j] == 1) {
+                var ball = {
+                  x: 14 * (R + 2) * index + j * 2 * (R + 1) + (R + 1),
+                  y: i * 2 * (R + 1) + (R + 1),
+                  stepX: Math.floor(Math.random() * 4 - 2),
+                  stepY: -2 * numArray[Math.floor(Math.random() * numArray.length)],
+                  color: colorArray[Math.floor(Math.random() * colorArray.length)],
+                  disY: 1
+                };
+                balls.push(ball);
+              }
+            }
+          }
+        }
+
+        /*渲染*/
+        function render() {
+          //重置画布宽度，达到清空画布的效果
+          canvas.height = 100;
+          //渲染时钟
+          for (var i = 0; i < data.length; i++) {
+            renderDigit(i, data[i]);
+          }
+          //渲染小球
+          for (var i = 0; i < balls.length; i++) {
+            cxt.beginPath();
+            cxt.arc(balls[i].x, balls[i].y, R, 0, 2 * Math.PI);
+            cxt.fillStyle = balls[i].color;
+            cxt.closePath();
+            cxt.fill();
+          }
+        }
+
+        clearInterval(oTimer);
+        var oTimer = setInterval(function () {
+          //更新时钟
+          updateDigitTime();
+          //更新小球状态
+          updateBalls();
+          //渲染
+          render();
+        }, 50);
+      }
+    })();
+
+  </script>
+
+
+</div>
+
+      
+
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">awabuda</span>
+
+  
+</div>
+
+
+
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+  
+  
+
+
+
+  
+  
+
+
+
+  
+  
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_sphere.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item=>{
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: true,
+        notify: false,
+        appId: 'DBST5TYeCj1kQTDDNozqqYJ7-gzGzoHsz',
+        appKey: '3U5lXDpHXEHKjMOrQtSQSWk6',
+        placeholder: '请留下您宝贵的意见',
+        avatar:'wavatar',
+        guest_info:guest,
+        pageSize:'10' || 10,
+    });
+  </script>
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("DBST5TYeCj1kQTDDNozqqYJ7-gzGzoHsz", "3U5lXDpHXEHKjMOrQtSQSWk6");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof mermaid === 'undefined') return;
+      mermaid.initialize({
+        theme: 'default',
+        startOnLoad: true,
+        securityLevel: 'loose',
+        flowchart: { useMaxWidth: true, htmlLabels: true },
+        sequence: { useMaxWidth: true, htmlLabels: true }
+      });
+      mermaid.run({ querySelector: '.mermaid' });
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+  <script>
+  !function (e, t, a) { function n() { c(".heart{width: 10px;height: 10px;position: fixed;background: #f00;transform: rotate(45deg);-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);}.heart:after,.heart:before{content: '';width: inherit;height: inherit;background: inherit;border-radius: 50%;-webkit-border-radius: 50%;-moz-border-radius: 50%;position: fixed;}.heart:after{top: -5px;}.heart:before{left: -5px;}"), o(), r() } function r() { for (var e = 0; e < d.length; e++)d[e].alpha <= 0 ? (t.body.removeChild(d[e].el), d.splice(e, 1)) : (d[e].y-- , d[e].scale += .004, d[e].alpha -= .013, d[e].el.style.cssText = "left:" + d[e].x + "px;top:" + d[e].y + "px;opacity:" + d[e].alpha + ";transform:scale(" + d[e].scale + "," + d[e].scale + ") rotate(45deg);background:" + d[e].color + ";z-index:99999"); requestAnimationFrame(r) } function o() { var t = "function" == typeof e.onclick && e.onclick; e.onclick = function (e) { t && t(), i(e) } } function i(e) { var a = t.createElement("div"); a.className = "heart", d.push({ el: a, x: e.clientX - 5, y: e.clientY - 5, scale: 1, alpha: 1, color: s() }), t.body.appendChild(a) } function c(e) { var a = t.createElement("style"); a.type = "text/css"; try { a.appendChild(t.createTextNode(e)) } catch (t) { a.styleSheet.cssText = e } t.getElementsByTagName("head")[0].appendChild(a) } function s() { return "rgb(" + ~~(255 * Math.random()) + "," + ~~(255 * Math.random()) + "," + ~~(255 * Math.random()) + ")" } var d = []; e.requestAnimationFrame = function () { return e.requestAnimationFrame || e.webkitRequestAnimationFrame || e.mozRequestAnimationFrame || e.oRequestAnimationFrame || e.msRequestAnimationFrame || function (e) { setTimeout(e, 1e3 / 60) } }(), n() }(window, document);
+</script>
+</body>
+</html>

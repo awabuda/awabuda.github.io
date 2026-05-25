@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+  
+
+<link href="//cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="js,node,小程序,ts" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="十、危险命令审批与检查点回滚（待验证） 结论先行：Hermes 提供两套独立的安全防线。执行前：tools&#x2F;approval.py 对终端命令进行正则匹配，命中危险模式则阻塞等待用户审批，支持 CLI 交互输入和 Gateway 按钮审批两种方式。执行后：tools&#x2F;checkpoint_manager.py 在每次文件写入前通过影子 git 仓库创建快照，用户随时可回滚到任意历史版本。两者联动：">
+<meta property="og:type" content="website">
+<meta property="og:title" content="十、危险命令审批与检查点回滚">
+<meta property="og:url" content="http://yoursite.com/books/hermes/10-%E5%8D%B1%E9%99%A9%E5%91%BD%E4%BB%A4%E5%AE%A1%E6%89%B9%E4%B8%8E%E6%A3%80%E6%9F%A5%E7%82%B9%E5%9B%9E%E6%BB%9A/index.html">
+<meta property="og:site_name" content="悟凌斋">
+<meta property="og:description" content="十、危险命令审批与检查点回滚（待验证） 结论先行：Hermes 提供两套独立的安全防线。执行前：tools&#x2F;approval.py 对终端命令进行正则匹配，命中危险模式则阻塞等待用户审批，支持 CLI 交互输入和 Gateway 按钮审批两种方式。执行后：tools&#x2F;checkpoint_manager.py 在每次文件写入前通过影子 git 仓库创建快照，用户随时可回滚到任意历史版本。两者联动：">
+<meta property="article:published_time" content="2026-05-25T06:35:19.643Z">
+<meta property="article:modified_time" content="2026-05-25T06:35:19.643Z">
+<meta property="article:author" content="awabuda">
+<meta property="article:tag" content="博客">
+<meta property="article:tag" content="js">
+<meta property="article:tag" content="前端">
+<meta property="article:tag" content="node">
+<meta property="article:tag" content="vue">
+<meta property="article:tag" content="react">
+<meta property="article:tag" content="koa">
+<meta property="article:tag" content="算法">
+<meta property="article:tag" content="css">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/books/hermes/10-危险命令审批与检查点回滚/"/>
+
+
+
+
+
+  <title>十、危险命令审批与检查点回滚 | 悟凌斋</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?b376e3ef6e386ad73d4f7661ebfc0d25";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">悟凌斋</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">一行代码翘起整个前端</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+	<h2 class="post-title" itemprop="name headline">十、危险命令审批与检查点回滚</h2>
+
+
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+        
+          <h1 id="十、危险命令审批与检查点回滚（待验证）"><a href="#十、危险命令审批与检查点回滚（待验证）" class="headerlink" title="十、危险命令审批与检查点回滚（待验证）"></a>十、危险命令审批与检查点回滚（待验证）</h1><blockquote>
+<p><strong>结论先行</strong>：Hermes 提供两套独立的安全防线。<strong>执行前</strong>：<code>tools/approval.py</code> 对终端命令进行正则匹配，命中危险模式则阻塞等待用户审批，支持 CLI 交互输入和 Gateway 按钮审批两种方式。<strong>执行后</strong>：<code>tools/checkpoint_manager.py</code> 在每次文件写入前通过影子 git 仓库创建快照，用户随时可回滚到任意历史版本。两者联动：审批系统防止危险命令执行，检查点系统兜底文件误改。</p>
+</blockquote>
+<hr>
+<h2 id="10-1-危险命令审批：从命令到执行的完整链路"><a href="#10-1-危险命令审批：从命令到执行的完整链路" class="headerlink" title="10.1 危险命令审批：从命令到执行的完整链路"></a>10.1 危险命令审批：从命令到执行的完整链路</h2><pre class="mermaid">
+flowchart TD
+    A["terminal(command)"] --> B["_normalize_command_for_detection()"]
+    B --> C["detect_dangerous_command()"]
+    C --> D{命中危险模式?}
+    D -->|否| E["直接执行"]
+    D -->|是| F{在白名单中?}
+    F -->|是: 永久/会话已批| E
+    F -->|否| G{运行环境}
+    G -->|CLI| H["阻塞等待用户输入<br/>o/s/a/d"]
+    G -->|Gateway| I["发送审批请求到用户<br/>阻塞线程等待按钮"]
+    H --> J{用户选择}
+    I --> J
+    J -->|once| E
+    J -->|session| K["记录到会话白名单"] --> E
+    J -->|always| L["写入 config.yaml<br/>command_allowlist"] --> E
+    J -->|deny| M["返回拒绝错误"]
+</pre>
+
+
+<h2 id="10-2-危险模式检测"><a href="#10-2-危险模式检测" class="headerlink" title="10.2 危险模式检测"></a>10.2 危险模式检测</h2><p><code>DANGEROUS_PATTERNS</code> 包含 30+ 条正则规则，覆盖常见破坏性操作：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tools/approval.py</span></span><br><span class="line">DANGEROUS_PATTERNS = [</span><br><span class="line">    (<span class="string">r'\brm\s+-[^\s]*r'</span>,                   <span class="string">"recursive delete"</span>),</span><br><span class="line">    (<span class="string">r'\brm\s+--recursive\b'</span>,              <span class="string">"recursive delete (long flag)"</span>),</span><br><span class="line">    (<span class="string">r'\bchmod\s+.*(777|666|o\+.*w)'</span>,      <span class="string">"world-writable permissions"</span>),</span><br><span class="line">    (<span class="string">r'\bmkfs\b'</span>,                           <span class="string">"format filesystem"</span>),</span><br><span class="line">    (<span class="string">r'\bdd\s+.*if='</span>,                       <span class="string">"disk copy"</span>),</span><br><span class="line">    (<span class="string">r'\bDROP\s+(TABLE|DATABASE)\b'</span>,        <span class="string">"SQL DROP"</span>),</span><br><span class="line">    (<span class="string">r'\bDELETE\s+FROM\b(?!.*\bWHERE\b)'</span>, <span class="string">"SQL DELETE without WHERE"</span>),</span><br><span class="line">    (<span class="string">r'\bkill\s+-9\s+-1\b'</span>,                <span class="string">"kill all processes"</span>),</span><br><span class="line">    (<span class="string">r':\(\)\s*\&#123;.*\&#125;\s*;'</span>,                <span class="string">"fork bomb"</span>),</span><br><span class="line">    (<span class="string">r'\b(curl|wget)\b.*\|\s*(ba)?sh\b'</span>,   <span class="string">"pipe remote content to shell"</span>),</span><br><span class="line">    <span class="comment"># ... 更多规则</span></span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p><strong>检测前先规范化</strong>，防止绕过：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">_normalize_command_for_detection</span><span class="params">(command: str)</span> -&gt; str:</span></span><br><span class="line">    <span class="keyword">from</span> tools.ansi_strip <span class="keyword">import</span> strip_ansi</span><br><span class="line">    command = strip_ansi(command)              <span class="comment"># 去除 ANSI 转义序列（防隐藏字符）</span></span><br><span class="line">    command = command.replace(<span class="string">'\x00'</span>, <span class="string">''</span>)      <span class="comment"># 去除 null 字节</span></span><br><span class="line">    command = unicodedata.normalize(<span class="string">'NFKC'</span>, command)  <span class="comment"># 全角/半角归一化</span></span><br><span class="line">    <span class="keyword">return</span> command</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="10-3-CLI-审批交互"><a href="#10-3-CLI-审批交互" class="headerlink" title="10.3 CLI 审批交互"></a>10.3 CLI 审批交互</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">⚠️  Dangerous command detected: recursive delete</span><br><span class="line">Command: rm -rf &#x2F;tmp&#x2F;mydir</span><br><span class="line"></span><br><span class="line">[o]nce - allow this one time</span><br><span class="line">[s]ession - allow for this session</span><br><span class="line">[a]lways - add to permanent allowlist</span><br><span class="line">[d]eny - reject this command</span><br><span class="line"></span><br><span class="line">Choice [o&#x2F;s&#x2F;a&#x2F;d]: _</span><br></pre></td></tr></table></figure>
+
+<p>四种结果：</p>
+<ul>
+<li><strong>once</strong>：本次执行，下次同类命令仍需审批</li>
+<li><strong>session</strong>：本次会话内该模式免审批（存内存，重启失效）</li>
+<li><strong>always</strong>：写入 <code>~/.hermes/config.yaml</code> <code>command_allowlist</code>，永久免审批</li>
+<li><strong>deny</strong>：拒绝执行，返回错误给 LLM</li>
+</ul>
+<hr>
+<h2 id="10-4-Gateway-审批：线程阻塞-异步通知"><a href="#10-4-Gateway-审批：线程阻塞-异步通知" class="headerlink" title="10.4 Gateway 审批：线程阻塞 + 异步通知"></a>10.4 Gateway 审批：线程阻塞 + 异步通知</h2><p>Gateway 场景（Telegram/Discord/Slack）下，审批请求必须跨线程同步：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 审批流程（tools/approval.py）</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 1. 当前 Agent 线程创建审批条目，阻塞等待</span></span><br><span class="line">entry = _ApprovalEntry(data=&#123;...&#125;)</span><br><span class="line">_gateway_queues[session_key].append(entry)</span><br><span class="line">notify_cb(&#123;<span class="string">"command"</span>: ..., <span class="string">"description"</span>: ...&#125;)  <span class="comment"># 触发向用户发消息（按钮）</span></span><br><span class="line">entry.event.wait(timeout=<span class="number">300</span>)                      <span class="comment"># 阻塞 ← 在这里等用户点击</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 用户点击按钮后，gateway/run.py 调用</span></span><br><span class="line">resolve_gateway_approval(session_key, choice=<span class="string">"once"</span>)  <span class="comment"># 解除阻塞</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 继续执行或拒绝</span></span><br><span class="line">result = entry.result  <span class="comment"># "once" / "session" / "always" / "deny"</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>线程安全</strong>：多个并发 Gateway 会话通过 <code>contextvars.ContextVar</code> 隔离审批状态，互不干扰。</p>
+<hr>
+<h2 id="10-5-检查点回滚：影子-git-仓库"><a href="#10-5-检查点回滚：影子-git-仓库" class="headerlink" title="10.5 检查点回滚：影子 git 仓库"></a>10.5 检查点回滚：影子 git 仓库</h2><p><code>checkpoint_manager.py</code> 使用独立的影子 git 仓库（不污染用户项目的 <code>.git</code>）：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">~&#x2F;.hermes&#x2F;checkpoints&#x2F;</span><br><span class="line">    └── &#123;sha256(工作目录路径)[:16]&#125;&#x2F;    ← 影子 git 仓库</span><br><span class="line">          ├── HEAD</span><br><span class="line">          ├── refs&#x2F;</span><br><span class="line">          ├── objects&#x2F;</span><br><span class="line">          └── HERMES_WORKDIR            ← 记录对应的原始工作目录路径</span><br><span class="line"></span><br><span class="line">GIT_DIR     &#x3D; ~&#x2F;.hermes&#x2F;checkpoints&#x2F;&#123;hash&#125;&#x2F;   ← git 操作指向影子仓库</span><br><span class="line">GIT_WORK_TREE &#x3D; &#x2F;path&#x2F;to&#x2F;user&#x2F;project&#x2F;        ← 工作树指向用户目录</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="10-6-快照触发时机"><a href="#10-6-快照触发时机" class="headerlink" title="10.6 快照触发时机"></a>10.6 快照触发时机</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tools/checkpoint_manager.py</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">new_turn</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="string">"""每轮对话开始时重置去重集合（防止同一轮重复快照）"""</span></span><br><span class="line">    _snapshotted_dirs.clear()</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">ensure_checkpoint</span><span class="params">(working_dir: str)</span> -&gt; bool:</span></span><br><span class="line">    <span class="string">"""在 write_file / patch 之前调用，首次触发则创建快照"""</span></span><br><span class="line">    <span class="keyword">if</span> working_dir <span class="keyword">in</span> _snapshotted_dirs:</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">True</span>  <span class="comment"># 本轮已快照，跳过</span></span><br><span class="line">    <span class="comment"># git add -A &amp;&amp; git commit 到影子仓库</span></span><br><span class="line">    _snapshotted_dirs.add(working_dir)</span><br><span class="line">    <span class="keyword">return</span> _create_snapshot(working_dir)</span><br></pre></td></tr></table></figure>
+
+<p><strong>触发条件</strong>：</p>
+<ul>
+<li><code>write_file</code> 写入前</li>
+<li><code>patch</code> 修改前</li>
+<li>每轮对话仅快照一次（去重），避免 I/O 过多</li>
+</ul>
+<hr>
+<h2 id="10-7-回滚操作"><a href="#10-7-回滚操作" class="headerlink" title="10.7 回滚操作"></a>10.7 回滚操作</h2><p>用户通过 <code>/rollback</code> 命令查看和恢复：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 列出历史快照</span></span><br><span class="line">/rollback list</span><br><span class="line"><span class="comment"># 输出：</span></span><br><span class="line"><span class="comment"># 1. 2024-01-15 14:23:01  "修改了 app.py 和 utils.py"</span></span><br><span class="line"><span class="comment"># 2. 2024-01-15 14:18:45  "创建了 config.json"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 回滚到指定快照（git checkout 恢复文件）</span></span><br><span class="line">/rollback 1</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="10-8-两套安全机制对比"><a href="#10-8-两套安全机制对比" class="headerlink" title="10.8 两套安全机制对比"></a>10.8 两套安全机制对比</h2><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>危险命令审批</th>
+<th>检查点回滚</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>保护对象</td>
+<td>shell 命令执行</td>
+<td>文件系统变更</td>
+</tr>
+<tr>
+<td>时机</td>
+<td>执行前拦截</td>
+<td>执行后兜底</td>
+</tr>
+<tr>
+<td>触发方式</td>
+<td>正则模式匹配</td>
+<td>文件写入时自动</td>
+</tr>
+<tr>
+<td>恢复方式</td>
+<td>拒绝执行</td>
+<td>git checkout 恢复</td>
+</tr>
+<tr>
+<td>配置项</td>
+<td><code>command_allowlist</code></td>
+<td><code>checkpoints: true</code></td>
+</tr>
+<tr>
+<td>存储位置</td>
+<td><code>~/.hermes/config.yaml</code></td>
+<td><code>~/.hermes/checkpoints/</code></td>
+</tr>
+</tbody></table>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+    
+    
+
+    
+      
+<div class="post-nav book-nav">
+  
+    <div class="post-nav-prev post-nav-item">
+      <a href="/books/hermes/09-MCP客户端集成/" rel="prev" title="九、MCP客户端集成">
+        <span class="post-nav-direction">上一章</span>
+        <span class="post-nav-title">九、MCP客户端集成</span>
+        <i class="fa fa-chevron-left"></i>
+      </a>
+    </div>
+  
+
+  
+    <div class="post-nav-next post-nav-item">
+      <a href="/books/hermes/11-execute_code程序化工具调用/" rel="next" title="十一、execute_code程序化工具调用">
+        <span class="post-nav-direction">下一篇</span>
+        <span class="post-nav-title">十一、execute_code程序化工具调用</span>
+        <i class="fa fa-chevron-right"></i>
+      </a>
+    </div>
+  
+</div>
+
+
+    
+
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+     
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.gif"
+                alt="awabuda" />
+            
+              <p class="site-author-name" itemprop="name">awabuda</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/awabuda" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i></a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:awabdua@163.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i></a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#十、危险命令审批与检查点回滚（待验证）"><span class="nav-number">1.</span> <span class="nav-text">十、危险命令审批与检查点回滚（待验证）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#10-1-危险命令审批：从命令到执行的完整链路"><span class="nav-number">1.1.</span> <span class="nav-text">10.1 危险命令审批：从命令到执行的完整链路</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-2-危险模式检测"><span class="nav-number">1.2.</span> <span class="nav-text">10.2 危险模式检测</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-3-CLI-审批交互"><span class="nav-number">1.3.</span> <span class="nav-text">10.3 CLI 审批交互</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-4-Gateway-审批：线程阻塞-异步通知"><span class="nav-number">1.4.</span> <span class="nav-text">10.4 Gateway 审批：线程阻塞 + 异步通知</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-5-检查点回滚：影子-git-仓库"><span class="nav-number">1.5.</span> <span class="nav-text">10.5 检查点回滚：影子 git 仓库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-6-快照触发时机"><span class="nav-number">1.6.</span> <span class="nav-text">10.6 快照触发时机</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-7-回滚操作"><span class="nav-number">1.7.</span> <span class="nav-text">10.7 回滚操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-8-两套安全机制对比"><span class="nav-number">1.8.</span> <span class="nav-text">10.8 两套安全机制对比</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+      
+        <div>
+  <canvas id="canvasDiyBlock" style="width:60%;">当前浏览器不支持canvas，请更换浏览器后再试</canvas>
+  <script>
+    (function () {
+
+      var digit = [
+        [
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 1, 1, 0, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 0, 1, 1, 0],
+          [0, 0, 1, 1, 1, 0, 0]
+        ], //0
+        [
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 1, 1, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [1, 1, 1, 1, 1, 1, 1]
+        ], //1
+        [
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 1, 1, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 1, 1, 1, 1, 1]
+        ], //2
+        [
+          [1, 1, 1, 1, 1, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //3
+        [
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 1, 0],
+          [0, 0, 1, 1, 1, 1, 0],
+          [0, 1, 1, 0, 1, 1, 0],
+          [1, 1, 0, 0, 1, 1, 0],
+          [1, 1, 1, 1, 1, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 1, 1]
+        ], //4
+        [
+          [1, 1, 1, 1, 1, 1, 1],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 1, 1, 1, 1, 0],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //5
+        [
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 1, 1, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 0, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //6
+        [
+          [1, 1, 1, 1, 1, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0]
+        ], //7
+        [
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //8
+        [
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 1, 1, 0, 0, 0, 0]
+        ], //9
+        [
+          [0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0]
+        ] //:
+      ];
+
+      var canvas = document.getElementById('canvasDiyBlock');
+      if (canvas.getContext) {
+        var cxt = canvas.getContext('2d');
+        //声明canvas的宽高
+        var H = 100,
+          W = 700;
+        canvas.height = H;
+        canvas.width = W;
+        cxt.fillStyle = '#f00';
+        cxt.fillRect(10, 10, 50, 50);
+
+        //存储时间数据
+        var data = [];
+        //存储运动的小球
+        var balls = [];
+        //设置粒子半径
+        var R = canvas.height / 20 - 1;
+        (function () {
+          var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+          //存储时间数字，由十位小时、个位小时、冒号、十位分钟、个位分钟、冒号、十位秒钟、个位秒钟这7个数字组成
+          data.push(temp[1], temp[2], 10, temp[3], temp[4], 10, temp[5], temp[6]);
+        })();
+
+        /*生成点阵数字*/
+        function renderDigit(index, num) {
+          for (var i = 0; i < digit[num].length; i++) {
+            for (var j = 0; j < digit[num][i].length; j++) {
+              if (digit[num][i][j] == 1) {
+                cxt.beginPath();
+                cxt.arc(14 * (R + 2) * index + j * 2 * (R + 1) + (R + 1), i * 2 * (R + 1) + (R + 1), R, 0, 2 * Math
+                  .PI);
+                cxt.closePath();
+                cxt.fill();
+              }
+            }
+          }
+        }
+
+        /*更新时钟*/
+        function updateDigitTime() {
+          var changeNumArray = [];
+          var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+          var NewData = [];
+          NewData.push(temp[1], temp[2], 10, temp[3], temp[4], 10, temp[5], temp[6]);
+          for (var i = data.length - 1; i >= 0; i--) {
+            //时间发生变化
+            if (NewData[i] !== data[i]) {
+              //将变化的数字值和在data数组中的索引存储在changeNumArray数组中
+              changeNumArray.push(i + '_' + (Number(data[i]) + 1) % 10);
+            }
+          }
+          //增加小球
+          for (var i = 0; i < changeNumArray.length; i++) {
+            addBalls.apply(this, changeNumArray[i].split('_'));
+          }
+          data = NewData.concat();
+        }
+
+        /*更新小球状态*/
+        function updateBalls() {
+          for (var i = 0; i < balls.length; i++) {
+            balls[i].stepY += balls[i].disY;
+            balls[i].x += balls[i].stepX;
+            balls[i].y += balls[i].stepY;
+            if (balls[i].x > W + R || balls[i].y > H + R) {
+              balls.splice(i, 1);
+              i--;
+            }
+          }
+        }
+
+        /*增加要运动的小球*/
+        function addBalls(index, num) {
+          var numArray = [1, 2, 3];
+          var colorArray = ["#3BE", "#09C", "#A6C", "#93C", "#9C0", "#690", "#FB3", "#F80", "#F44", "#C00"];
+          for (var i = 0; i < digit[num].length; i++) {
+            for (var j = 0; j < digit[num][i].length; j++) {
+              if (digit[num][i][j] == 1) {
+                var ball = {
+                  x: 14 * (R + 2) * index + j * 2 * (R + 1) + (R + 1),
+                  y: i * 2 * (R + 1) + (R + 1),
+                  stepX: Math.floor(Math.random() * 4 - 2),
+                  stepY: -2 * numArray[Math.floor(Math.random() * numArray.length)],
+                  color: colorArray[Math.floor(Math.random() * colorArray.length)],
+                  disY: 1
+                };
+                balls.push(ball);
+              }
+            }
+          }
+        }
+
+        /*渲染*/
+        function render() {
+          //重置画布宽度，达到清空画布的效果
+          canvas.height = 100;
+          //渲染时钟
+          for (var i = 0; i < data.length; i++) {
+            renderDigit(i, data[i]);
+          }
+          //渲染小球
+          for (var i = 0; i < balls.length; i++) {
+            cxt.beginPath();
+            cxt.arc(balls[i].x, balls[i].y, R, 0, 2 * Math.PI);
+            cxt.fillStyle = balls[i].color;
+            cxt.closePath();
+            cxt.fill();
+          }
+        }
+
+        clearInterval(oTimer);
+        var oTimer = setInterval(function () {
+          //更新时钟
+          updateDigitTime();
+          //更新小球状态
+          updateBalls();
+          //渲染
+          render();
+        }, 50);
+      }
+    })();
+
+  </script>
+
+
+</div>
+
+      
+
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">awabuda</span>
+
+  
+</div>
+
+
+
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+  
+  
+
+
+
+  
+  
+
+
+
+  
+  
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_sphere.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item=>{
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: true,
+        notify: false,
+        appId: 'DBST5TYeCj1kQTDDNozqqYJ7-gzGzoHsz',
+        appKey: '3U5lXDpHXEHKjMOrQtSQSWk6',
+        placeholder: '请留下您宝贵的意见',
+        avatar:'wavatar',
+        guest_info:guest,
+        pageSize:'10' || 10,
+    });
+  </script>
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("DBST5TYeCj1kQTDDNozqqYJ7-gzGzoHsz", "3U5lXDpHXEHKjMOrQtSQSWk6");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof mermaid === 'undefined') return;
+      mermaid.initialize({
+        theme: 'default',
+        startOnLoad: true,
+        securityLevel: 'loose',
+        flowchart: { useMaxWidth: true, htmlLabels: true },
+        sequence: { useMaxWidth: true, htmlLabels: true }
+      });
+      mermaid.run({ querySelector: '.mermaid' });
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+  <script>
+  !function (e, t, a) { function n() { c(".heart{width: 10px;height: 10px;position: fixed;background: #f00;transform: rotate(45deg);-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);}.heart:after,.heart:before{content: '';width: inherit;height: inherit;background: inherit;border-radius: 50%;-webkit-border-radius: 50%;-moz-border-radius: 50%;position: fixed;}.heart:after{top: -5px;}.heart:before{left: -5px;}"), o(), r() } function r() { for (var e = 0; e < d.length; e++)d[e].alpha <= 0 ? (t.body.removeChild(d[e].el), d.splice(e, 1)) : (d[e].y-- , d[e].scale += .004, d[e].alpha -= .013, d[e].el.style.cssText = "left:" + d[e].x + "px;top:" + d[e].y + "px;opacity:" + d[e].alpha + ";transform:scale(" + d[e].scale + "," + d[e].scale + ") rotate(45deg);background:" + d[e].color + ";z-index:99999"); requestAnimationFrame(r) } function o() { var t = "function" == typeof e.onclick && e.onclick; e.onclick = function (e) { t && t(), i(e) } } function i(e) { var a = t.createElement("div"); a.className = "heart", d.push({ el: a, x: e.clientX - 5, y: e.clientY - 5, scale: 1, alpha: 1, color: s() }), t.body.appendChild(a) } function c(e) { var a = t.createElement("style"); a.type = "text/css"; try { a.appendChild(t.createTextNode(e)) } catch (t) { a.styleSheet.cssText = e } t.getElementsByTagName("head")[0].appendChild(a) } function s() { return "rgb(" + ~~(255 * Math.random()) + "," + ~~(255 * Math.random()) + "," + ~~(255 * Math.random()) + ")" } var d = []; e.requestAnimationFrame = function () { return e.requestAnimationFrame || e.webkitRequestAnimationFrame || e.mozRequestAnimationFrame || e.oRequestAnimationFrame || e.msRequestAnimationFrame || function (e) { setTimeout(e, 1e3 / 60) } }(), n() }(window, document);
+</script>
+</body>
+</html>

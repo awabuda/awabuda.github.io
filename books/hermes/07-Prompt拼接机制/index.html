@@ -1,0 +1,1798 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+  
+
+<link href="//cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="js,node,小程序,ts" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="七、Prompt 拼接机制_build_system_prompt() 是 Hermes 中最重要的”一次性”操作，也是整个 Agent 架构中与成本最直接相关的设计决策。 结论先行：System Prompt 整个会话只构建一次，然后永久缓存。这个决策的核心驱动力不是性能，而是成本——Anthropic 的 prefix cache 要求缓存内容（system 前缀）在多轮对话间保持完全一致，任">
+<meta property="og:type" content="website">
+<meta property="og:title" content="七、Prompt拼接机制">
+<meta property="og:url" content="http://yoursite.com/books/hermes/07-Prompt%E6%8B%BC%E6%8E%A5%E6%9C%BA%E5%88%B6/index.html">
+<meta property="og:site_name" content="悟凌斋">
+<meta property="og:description" content="七、Prompt 拼接机制_build_system_prompt() 是 Hermes 中最重要的”一次性”操作，也是整个 Agent 架构中与成本最直接相关的设计决策。 结论先行：System Prompt 整个会话只构建一次，然后永久缓存。这个决策的核心驱动力不是性能，而是成本——Anthropic 的 prefix cache 要求缓存内容（system 前缀）在多轮对话间保持完全一致，任">
+<meta property="article:published_time" content="2026-05-25T06:35:19.641Z">
+<meta property="article:modified_time" content="2026-05-25T06:35:19.641Z">
+<meta property="article:author" content="awabuda">
+<meta property="article:tag" content="博客">
+<meta property="article:tag" content="js">
+<meta property="article:tag" content="前端">
+<meta property="article:tag" content="node">
+<meta property="article:tag" content="vue">
+<meta property="article:tag" content="react">
+<meta property="article:tag" content="koa">
+<meta property="article:tag" content="算法">
+<meta property="article:tag" content="css">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/books/hermes/07-Prompt拼接机制/"/>
+
+
+
+
+
+  <title>七、Prompt拼接机制 | 悟凌斋</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?b376e3ef6e386ad73d4f7661ebfc0d25";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">悟凌斋</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">一行代码翘起整个前端</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+	<h2 class="post-title" itemprop="name headline">七、Prompt拼接机制</h2>
+
+
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+        
+          <h1 id="七、Prompt-拼接机制"><a href="#七、Prompt-拼接机制" class="headerlink" title="七、Prompt 拼接机制"></a>七、Prompt 拼接机制</h1><p><code>_build_system_prompt()</code> 是 Hermes 中最重要的”一次性”操作，也是整个 Agent 架构中与成本最直接相关的设计决策。</p>
+<p><strong>结论先行</strong>：System Prompt 整个会话只构建一次，然后永久缓存。这个决策的核心驱动力不是性能，而是<strong>成本</strong>——Anthropic 的 prefix cache 要求缓存内容（system 前缀）在多轮对话间保持完全一致，任何一个字节的变化都会导致缓存失效，输入 token 费用从原价的 10% 跳回 100%。</p>
+<p>一个典型的 Hermes 会话，system prompt 约 3000<del>8000 token。如果每轮都全量计费，20 轮对话就额外消耗 6</del>16 万 token。冻结快照设计让这部分成本降至接近零。</p>
+<hr>
+<h2 id="System-Prompt-构建全流程"><a href="#System-Prompt-构建全流程" class="headerlink" title="System Prompt 构建全流程"></a>System Prompt 构建全流程</h2><pre class="mermaid">
+flowchart TD
+    A["run_conversation() 入口"] --> B{self._cached_system_prompt\nis None?}
+
+    B -->|否，已有缓存| C["直接复用\n本轮不重建"]
+
+    B -->|是，需要构建| D{有 conversation_history\n且有 session_db?}
+
+    D -->|是，续接会话| E["从 SQLite 读取\nsession_row['system_prompt']"]
+    E --> F{读取成功?}
+    F -->|是| G["复用已存快照\n✅ Anthropic 缓存对齐"]
+    F -->|否| H
+
+    D -->|否，新会话首轮| H["_build_system_prompt()\n7层拼接"]
+
+    H --> I["快照写入 SQLite\nsession_db.update_system_prompt()"]
+    I --> J["触发 on_session_start 钩子\n（仅新会话，不含续接）"]
+
+    G --> K["self._cached_system_prompt = 结果"]
+    J --> K
+    C --> L["active_system_prompt\n用于本轮 API 调用"]
+    K --> L
+</pre>
+
+
+<h2 id="System-Prompt-N-层结构"><a href="#System-Prompt-N-层结构" class="headerlink" title="System Prompt N 层结构"></a>System Prompt N 层结构</h2><pre class="mermaid">
+flowchart TD
+    SP["System Prompt（最终拼接结果）"]
+
+    SP --> L1
+    SP --> L2
+    SP --> L3
+    SP --> L4
+    SP --> L5
+    SP --> L6
+    SP --> L7
+
+    subgraph L1["第 1 层：Agent 身份（必有）"]
+        L1A{存在 ~/.hermes/soul.md?}
+        L1A -->|是| L1B["读取 SOUL.md\n用户自定义 AI 人格/角色"]
+        L1A -->|否| L1C["DEFAULT_AGENT_IDENTITY\n默认身份描述"]
+    end
+
+    subgraph L2["第 2 层：工具行为引导（动态，按工具可用性注入）"]
+        BPAD[ ]:::hidden
+        L2A["memory 工具已加载 → MEMORY_GUIDANCE\n'Use the memory tool to...'"]
+        L2B["skill_manage 已加载 → SKILLS_GUIDANCE\n'After complex tasks, save as skill...'"]
+        L2C["session_search 已加载 → SESSION_SEARCH_GUIDANCE"]
+        L2D["Gemini/GPT 等模型 → TOOL_USE_ENFORCEMENT_GUIDANCE\n部分模型只描述不执行，需要强制引导"]
+    end
+
+    subgraph L3["第 3 层：用户/平台 System Message（可选）"]
+        direction LR
+        BPAD[ ]:::hidden
+        L3A["外部调用时传入的自定义 system_message\n例：'You are a code review assistant...'"]
+    end
+
+    subgraph L4["第 4 层：持久记忆（冻结快照）"]
+        BPAD[ ]:::hidden
+        L4A["MEMORY.md 全文\n包裹在 XML 标签 <hermes-memory>"]
+        L4B["USER.md 全文\n包裹在 <user-profile>"]
+        L4C["外置 Memory 插件摘要\n（如果安装了 Mem0/Honcho 等）"]
+    end
+
+    subgraph L5["第 5 层：技能索引（渐进式披露）"]
+        BPAD[ ]:::hidden
+        L5A["扫描 ~/.hermes/skills/ 的 SKILL.md frontmatter\n只放 name + description（摘要）\n完整内容不在这里，按需 skill_view 加载"]
+    end
+
+    subgraph L6["第 6 层：上下文文件（项目规范）"]
+        BPAD[ ]:::hidden
+        L6A["从当前工作目录向上查找至 git root\nAGENTS.md / .hermes.md / .cursorrules / CLAUDE.md\n若已有 SOUL.md 则跳过（避免重复）"]
+    end
+
+    subgraph L7["第 7 层：元信息"]
+        L7A["当前日期时间（构建时冻结）\nSession ID / 模型名\n平台格式提示（cli/telegram/discord）"]
+    end
+</pre>
+
+
+<h2 id="System-Prompt-逐层解析（实例分析）"><a href="#System-Prompt-逐层解析（实例分析）" class="headerlink" title="System Prompt 逐层解析（实例分析）"></a>System Prompt 逐层解析（实例分析）</h2><p>对一次真实 Hermes 运行时产生的 System Prompt 进行逐层拆解，对照 <code>run_agent.py::_build_system_prompt()</code> 的组装逻辑，说明每段内容的来源、生成时机和作用。</p>
+<h3 id="Build-流程总览"><a href="#Build-流程总览" class="headerlink" title="Build 流程总览"></a>Build 流程总览</h3><p><code>_build_system_prompt()</code> 在<strong>每个会话首轮调用一次</strong>，结果缓存到 <code>self._cached_system_prompt</code>，只有在上下文压缩时才会重建。组装顺序固定如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Layer 1  │ 代理身份           SOUL.md  或  DEFAULT_AGENT_IDENTITY（硬编码兜底）</span><br><span class="line">Layer 2  │ 工具行为引导        MEMORY_GUIDANCE + SESSION_SEARCH_GUIDANCE + SKILLS_GUIDANCE（按工具是否可用条件注入）</span><br><span class="line">Layer 3  │ Nous 订阅提示       build_nous_subscription_prompt()（商业功能，按工具可用性注入）</span><br><span class="line">Layer 4  │ 工具使用强制引导    TOOL_USE_ENFORCEMENT_GUIDANCE（按模型类型条件注入）</span><br><span class="line">Layer 5  │ 外部 system_message 用户 &#x2F; Gateway 传入的自定义 system prompt（如有）</span><br><span class="line">Layer 6  │ 持久记忆            MEMORY.md + USER.md</span><br><span class="line">Layer 7  │ 外部 memory provider build_system_prompt()（mem0、holographic 等，如已配置）</span><br><span class="line">Layer 8  │ 技能索引            build_skills_system_prompt()（两级缓存的紧凑 skills 目录）</span><br><span class="line">Layer 9  │ 上下文文件          build_context_files_prompt()（AGENTS.md &#x2F; SOUL.md &#x2F; .cursorrules 等）</span><br><span class="line">Layer 10 │ 时间戳 + 元信息     会话开始时间、Session ID、Model、Provider</span><br><span class="line">Layer 11 │ 平台提示            PLATFORM_HINTS[platform]（cli &#x2F; telegram &#x2F; discord 等）</span><br></pre></td></tr></table></figure>
+
+<h3 id="各层详解（以真实-Prompt-为例）"><a href="#各层详解（以真实-Prompt-为例）" class="headerlink" title="各层详解（以真实 Prompt 为例）"></a>各层详解（以真实 Prompt 为例）</h3><h4 id="Layer-1-—-代理身份（SOUL-md）"><a href="#Layer-1-—-代理身份（SOUL-md）" class="headerlink" title="Layer 1 — 代理身份（SOUL.md）"></a>Layer 1 — 代理身份（SOUL.md）</h4><p><strong>来源</strong>：<code>~/.hermes/SOUL.md</code>，<code>load_soul_md()</code> 加载，优先于硬编码的 <code>DEFAULT_AGENT_IDENTITY</code>。  </p>
+<p><strong>生成时机</strong>：会话首轮，冻结在 <code>_cached_system_prompt</code> 中。  </p>
+<p><strong>作用</strong>：定义 Agent 的人格、语气和核心行为规范。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># Hermes Agent Persona</span><br><span class="line"></span><br><span class="line">&lt;!--</span><br><span class="line">This file defines the agent&#39;s personality and tone.</span><br><span class="line">The agent will embody whatever you write here.</span><br><span class="line">Edit this to customize how Hermes communicates with you.</span><br><span class="line">...</span><br><span class="line">--&gt;</span><br></pre></td></tr></table></figure>
+
+<p>这段 注释是 SOUL.md 的说明文件头，实际内容是空的（用户未自定义），因此下方的 tool_guidance 段直接跟上（两块之间用 <code>\n\n</code> 拼接）。</p>
+<h4 id="Layer-2-—-工具行为引导（Tool-Guidance）"><a href="#Layer-2-—-工具行为引导（Tool-Guidance）" class="headerlink" title="Layer 2 — 工具行为引导（Tool Guidance）"></a>Layer 2 — 工具行为引导（Tool Guidance）</h4><p><strong>来源</strong>：<code>agent/prompt_builder.py</code> 中三个常量，按工具可用性条件注入：</p>
+<ul>
+<li><code>memory</code> 工具可用 → 注入 <code>MEMORY_GUIDANCE</code></li>
+<li><code>session_search</code> 工具可用 → 注入 <code>SESSION_SEARCH_GUIDANCE</code></li>
+<li><code>skill_manage</code> 工具可用 → 注入 <code>SKILLS_GUIDANCE</code></li>
+</ul>
+<p><strong>生成时机</strong>：会话首轮，条件检查 <code>self.valid_tool_names</code>。  </p>
+<p><strong>作用</strong>：告诉模型这三类工具的使用策略，防止滥用或漏用。</p>
+<p>:::collapse{active nodeId=”c3aa33f1d9d345029777e8c170d48763” titleNodeId=”a59e1a77-8fe2-403f-a35d-dd599bbb5509” contentNodeId=”10e5419c-fbbc-4d24-a244-3c117bd8a756”}</p>
+<p>MEMORY_GUIDANCE 原文</p>
+<hr>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">You have persistent memory across sessions. Save durable facts using the memory</span><br><span class="line">tool: user preferences, environment details, tool quirks, and stable conventions.</span><br><span class="line">Memory is injected into every turn, so keep it compact and focused on facts that</span><br><span class="line">will still matter later.</span><br><span class="line">Prioritize what reduces future user steering — the most valuable memory is one</span><br><span class="line">that prevents the user from having to correct or remind you again. User</span><br><span class="line">preferences and recurring corrections matter more than procedural task details.</span><br><span class="line">Do NOT save task progress, session outcomes, completed-work logs, or temporary</span><br><span class="line">TODO state to memory; use session_search to recall those from past transcripts.</span><br><span class="line">If you&#39;ve discovered a new way to do something, solved a problem that could be</span><br><span class="line">necessary later, save it as a skill with the skill tool.</span><br></pre></td></tr></table></figure>
+
+<p><strong>扩展部分</strong>：本例 Prompt 中还出现了比 <code>MEMORY_GUIDANCE</code> 常量更多的文字（”Write memories as declarative facts…”），这部分属于用户自定义内容，写入了 SOUL.md，与硬编码常量叠加注入。</p>
+<p>:::collapse{nodeId=”4bcfbaaa960d4dfe80c2c753aa601ec1” titleNodeId=”2b679d6d-7278-4cc8-9e9e-293bfed7d273” contentNodeId=”8b671716-cf47-4217-9327-0e8c54354ec1”}</p>
+<p>SESSION_SEARCH_GUIDANCE 原文</p>
+<hr>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">When the user references something from a past conversation or you suspect</span><br><span class="line">relevant cross-session context exists, use session_search to recall it before</span><br><span class="line">asking them to repeat themselves.</span><br></pre></td></tr></table></figure>
+
+<p>:::collapse{nodeId=”69344326109740c1a10c0a2a39dc4768” titleNodeId=”ec804124-e9ee-4124-a02d-b32d5a3ab37d” contentNodeId=”ba1943a9-f6b7-4619-84f0-4b56f4e44d76”}</p>
+<p>SKILLS_GUIDANCE 原文</p>
+<hr>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">After completing a complex task (5+ tool calls), fixing a tricky error, or</span><br><span class="line">discovering a non-trivial workflow, save the approach as a skill with</span><br><span class="line">skill_manage so you can reuse it next time.</span><br><span class="line">When using a skill and finding it outdated, incomplete, or wrong, patch it</span><br><span class="line">immediately with skill_manage(action&#x3D;&#39;patch&#39;) — don&#39;t wait to be asked.</span><br><span class="line">Skills that aren&#39;t maintained become liabilities.</span><br></pre></td></tr></table></figure>
+
+<h4 id="Layer-6-—-持久记忆（MEMORY-md-USER-md）"><a href="#Layer-6-—-持久记忆（MEMORY-md-USER-md）" class="headerlink" title="Layer 6 — 持久记忆（MEMORY.md + USER.md）"></a>Layer 6 — 持久记忆（MEMORY.md + USER.md）</h4><p><strong>来源：</strong><code>**~/.hermes/memories/MEMORY.md**</code>** 和 <strong>`</strong>~/.hermes/memories/USER.md<strong>`</strong>，两个纯文本文件，由 <strong>`</strong>MemoryStore<strong>`</strong> 类管理（<strong>`</strong>tools/memory_tool.py<strong>`</strong>）。**</p>
+<p><strong>生成时机：Agent 初始化时 **`</strong>load_from_disk()<strong>`</strong> 读取文件，生成 <strong>`</strong>_system_prompt_snapshot<strong>`</strong> 冻结快照，会话首轮通过 <strong>`</strong>format_for_system_prompt()<strong>`</strong> 格式化后注入。**</p>
+<p><strong>作用：将跨会话积累的持久性事实注入上下文，无需用户每次重复告知。</strong></p>
+<p>:::collapse{active nodeId=”418e79886afd471396eaf54ea21164eb” titleNodeId=”12557b95-6d06-44d3-b593-ba5ee73b3043” contentNodeId=”f993d81a-4d0b-40ad-8862-cd28dd6087a3”}</p>
+<p>MEMORY.md 输出示例</p>
+<hr>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">══════════════════════════════════════════════</span><br><span class="line">MEMORY (your personal notes) [99% — 2,199&#x2F;2,200 chars]</span><br><span class="line">══════════════════════════════════════════════</span><br><span class="line">Stable Diffusion 环境 (2026-04-15 更新):</span><br><span class="line">§  SD WebUI 位置: ~&#x2F;stable-diffusion-webui</span><br><span class="line">§  模型: v1-5-pruned-emaonly.safetensors (4GB，已下载)</span><br><span class="line">§  User: Chinese language user</span><br><span class="line">§  MIS: chengpengtao</span><br></pre></td></tr></table></figure>
+
+<p><code>[99% — 2,199/2,200 chars]</code> 是 memory store 自动计算的容量百分比。<code>§</code> 是条目分隔符。</p>
+<h4 id="Layer-8-—-技能索引（Skills-Prompt）"><a href="#Layer-8-—-技能索引（Skills-Prompt）" class="headerlink" title="Layer 8 — 技能索引（Skills Prompt）"></a>Layer 8 — 技能索引（Skills Prompt）</h4><p><strong>来源</strong>：<code>build_skills_system_prompt()</code> 扫描 <code>~/.hermes/skills/</code> 目录生成紧凑索引，采用两级缓存（LRU 字典 + 磁盘快照 <code>.skills_prompt_snapshot.json</code>）。  </p>
+<p><strong>作用</strong>：提供可用技能目录，让模型在任务开始前扫描并按需加载相关技能。</p>
+<p>:::collapse{nodeId=”3ab2367c248a4a089cf83e31d126653c” titleNodeId=”fbb462b1-35a9-4b2e-9c37-86d47e2b5db8” contentNodeId=”32600df6-c3d6-437d-b40f-974d0d0db152”}</p>
+<p>Skills Prompt 格式示例</p>
+<hr>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">## Skills (mandatory)</span><br><span class="line">Before replying, scan the skills below. If a skill matches or is even partially</span><br><span class="line">relevant to your task, you MUST load it with skill_view(name) and follow its instructions.</span><br><span class="line"></span><br><span class="line">&lt;available_skills&gt;</span><br><span class="line">  apple: Apple&#x2F;macOS-specific skills — iMessage, Reminders, Notes, FindMy...</span><br><span class="line">    - apple-notes: Manage Apple Notes via the memo CLI on macOS</span><br><span class="line">  autonomous-ai-agents: Skills for spawning and orchestrating autonomous AI agents...</span><br><span class="line">    - claude-code: Delegate coding tasks to Claude Code</span><br><span class="line">    - hermes-agent: Complete guide to using and extending Hermes Agent</span><br><span class="line">  ... （其余技能分类省略）</span><br><span class="line">&lt;&#x2F;available_skills&gt;</span><br><span class="line"></span><br><span class="line">Only proceed without loading a skill if genuinely none are relevant to the task.</span><br></pre></td></tr></table></figure>
+
+<h4 id="Layer-10-—-时间戳-元信息"><a href="#Layer-10-—-时间戳-元信息" class="headerlink" title="Layer 10 — 时间戳 + 元信息"></a>Layer 10 — 时间戳 + 元信息</h4><p><strong>来源</strong>：<code>run_agent.py</code> 直接拼接，<code>hermes_time.now()</code> 获取当前时间，在<strong>构建时冻结</strong>（同一会话内不会更新）。  </p>
+<p><strong>作用</strong>：让模型知道当前时间、所用模型和 Provider，避免使用训练时的过期信息。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Conversation started: Wednesday, April 22, 2026 02:59 PM</span><br><span class="line">Model: MiniMax-M2.7</span><br><span class="line">Provider: custom</span><br></pre></td></tr></table></figure>
+
+<h4 id="Layer-11-—-平台提示（Platform-Hints）"><a href="#Layer-11-—-平台提示（Platform-Hints）" class="headerlink" title="Layer 11 — 平台提示（Platform Hints）"></a>Layer 11 — 平台提示（Platform Hints）</h4><p><strong>来源</strong>：<code>PLATFORM_HINTS[&quot;cli&quot;]</code>，在 <code>prompt_builder.py</code> 中定义，按 <code>self.platform</code> 值选择，不存在则跳过。  </p>
+<p><strong>作用</strong>：告知模型当前运行环境的输出约束（是否支持 Markdown、媒体发送方式等）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">You are a CLI AI Agent. Try not to use markdown but simple text renderable</span><br><span class="line">inside a terminal.</span><br></pre></td></tr></table></figure>
+
+<h4 id="层级汇总"><a href="#层级汇总" class="headerlink" title="层级汇总"></a>层级汇总</h4><table>
+<thead>
+<tr>
+<th>层级</th>
+<th>内容片段（摘要）</th>
+<th>来源文件/常量</th>
+<th>是否冻结</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td><code># Hermes Agent Persona</code> + HTML 注释头</td>
+<td><code>~/.hermes/SOUL.md</code></td>
+<td>✅ 冻结</td>
+</tr>
+<tr>
+<td>2a</td>
+<td><code>You have persistent memory...</code> (MEMORY_GUIDANCE)</td>
+<td><code>agent/prompt_builder.py</code></td>
+<td>✅ 冻结</td>
+</tr>
+<tr>
+<td>2b</td>
+<td><code>Write memories as declarative facts...</code></td>
+<td><code>~/.hermes/SOUL.md</code>（用户自定义追加）</td>
+<td>✅ 冻结</td>
+</tr>
+<tr>
+<td>2c</td>
+<td><code>When the user references...</code> (SESSION_SEARCH_GUIDANCE)</td>
+<td><code>agent/prompt_builder.py</code></td>
+<td>✅ 冻结</td>
+</tr>
+<tr>
+<td>2d</td>
+<td><code>After completing a complex task...</code> (SKILLS_GUIDANCE)</td>
+<td><code>agent/prompt_builder.py</code></td>
+<td>✅ 冻结</td>
+</tr>
+<tr>
+<td>6a</td>
+<td><code>MEMORY (your personal notes)</code> + 具体条目</td>
+<td><code>~/.hermes/MEMORY.md</code> (SQLite)</td>
+<td>✅ 冻结快照</td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>## Skills (mandatory)</code> + <code>&lt;available_skills&gt;</code></td>
+<td><code>~/.hermes/skills/</code> 目录扫描</td>
+<td>✅ 冻结（两级缓存）</td>
+</tr>
+<tr>
+<td>10</td>
+<td><code>Conversation started: ...</code> + Model + Provider</td>
+<td><code>run_agent.py</code> 直接拼接</td>
+<td>✅ 冻结（构建时时间戳）</td>
+</tr>
+<tr>
+<td>11</td>
+<td><code>You are a CLI AI Agent...</code></td>
+<td><code>PLATFORM_HINTS[&quot;cli&quot;]</code></td>
+<td>✅ 冻结</td>
+</tr>
+</tbody></table>
+<p><strong>本例缺席的层级</strong>：Layer 3（Nous 订阅，需商业授权）、Layer 4（工具强制引导，MiniMax-M2.7 不在名单）、Layer 7（外部 memory provider 未配置）、Layer 9（无 AGENTS.md 等上下文文件）。</p>
+<hr>
+<hr>
+<h2 id="Prompt-Caching：4-个断点的战略布局"><a href="#Prompt-Caching：4-个断点的战略布局" class="headerlink" title="Prompt Caching：4 个断点的战略布局"></a>Prompt Caching：4 个断点的战略布局</h2><p>Anthropic 允许最多 4 个 <code>cache_control</code> 断点。Hermes 的布局策略最大化了缓存收益：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">api_messages（最终发送给 Anthropic 的版本）：</span><br><span class="line"></span><br><span class="line">位置 [0] system message：</span><br><span class="line">  &#123;&quot;role&quot;:&quot;system&quot;, &quot;content&quot;:[&#123;</span><br><span class="line">      &quot;type&quot;:&quot;text&quot;,</span><br><span class="line">      &quot;text&quot;:&quot;...(7层拼接结果)...&quot;,</span><br><span class="line">      &quot;cache_control&quot;:&#123;&quot;type&quot;:&quot;ephemeral&quot;&#125;  ← 断点 1</span><br><span class="line">  &#125;]&#125;</span><br><span class="line">  收益：最大。system 在所有轮次完全不变，每轮都命中。</span><br><span class="line"></span><br><span class="line">位置 [N-3] 第三近的非 system 消息：</span><br><span class="line">  &#123;&quot;role&quot;:&quot;assistant&quot;, &quot;content&quot;:[&#123;..., &quot;cache_control&quot;:&#123;...&#125;&#125;]&#125;</span><br><span class="line">                                          ↑ 断点 2（滑动窗口）</span><br><span class="line"></span><br><span class="line">位置 [N-2] 第二近的非 system 消息：</span><br><span class="line">  &#123;&quot;role&quot;:&quot;tool&quot;, &quot;content&quot;:&quot;...&quot;, &quot;cache_control&quot;:&#123;...&#125;&#125;</span><br><span class="line">                                   ↑ 断点 3</span><br><span class="line"></span><br><span class="line">位置 [N-1] 最近的非 system 消息（通常是当前 user 消息）：</span><br><span class="line">  &#123;&quot;role&quot;:&quot;user&quot;, &quot;content&quot;:[&#123;..., &quot;cache_control&quot;:&#123;...&#125;&#125;]&#125;</span><br><span class="line">                                   ↑ 断点 4</span><br><span class="line"></span><br><span class="line">策略：断点 1 在 system（不动），断点 2~4 随对话推进滑动，</span><br><span class="line">      保证最新的 3 条历史消息也被缓存（下一轮复用）</span><br></pre></td></tr></table></figure>
+
+<p><strong>实际节省效果</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>无缓存</th>
+<th>有缓存（当前设计）</th>
+<th>节省</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>system prompt 4000 token × 20 轮</td>
+<td>80,000 token</td>
+<td>~5,000 token（首轮全量，后续 10%）</td>
+<td>~94%</td>
+</tr>
+<tr>
+<td>历史消息 10,000 token × 每轮</td>
+<td>每轮 10,000</td>
+<td>~2,000（命中的部分）</td>
+<td>~80%</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="api-messages-的临时注入层"><a href="#api-messages-的临时注入层" class="headerlink" title="api_messages 的临时注入层"></a>api_messages 的临时注入层</h2><p>每次 LLM 调用前，在 <code>api_messages</code>（messages 的临时副本）上还会叠加动态内容，<strong>但绝不修改原始 messages 列表</strong>：</p>
+<pre class="mermaid">
+flowchart LR
+    A["messages\n（持久化对话历史）"] --> B["构建 api_messages\n（临时副本）"]
+
+    subgraph B["api_messages 构建过程"]
+        direction TB
+        B1["对每条消息构建副本\n删除内部字段：\nreasoning / finish_reason / extra_content"]
+        B2["保留 reasoning_details\n（多轮推理连续性，某些 provider 需要）"]
+        B3["当前轮 user 消息末尾追加：\n① 外置记忆 prefetch 结果\n② nudge 提示（记忆/技能建议）"]
+        B4["头部插入 system prompt：\nself._cached_system_prompt\n+ ephemeral_system_prompt（临时注入）"]
+        B5["中间插入 prefill_messages\n（few-shot 示例，如 thinking 模板）"]
+    end
+
+    B --> C["apply_anthropic_cache_control()\n注入 4 个 cache_control 断点"]
+    C --> D["_sanitize_api_messages()\n修复孤儿 tool 结果"]
+    D --> E["发送给 LLM API"]
+
+    A -. "不修改原始列表" .-> A
+</pre>
+
+
+<h2 id="FAQ"><a href="#FAQ" class="headerlink" title="FAQ"></a>FAQ</h2><h3 id="为什么设计决策都是为了保护缓存"><a href="#为什么设计决策都是为了保护缓存" class="headerlink" title="为什么设计决策都是为了保护缓存"></a>为什么设计决策都是为了保护缓存</h3><p>理解 Hermes Prompt 设计的关键，是认识到<strong>几乎所有”奇怪”的设计决策都是为了不破坏 Anthropic prefix cache</strong>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">设计决策 1：记忆写入不立即更新 system prompt</span><br><span class="line">  原因：MEMORY.md 更新 → system prompt 变化</span><br><span class="line">       → Anthropic prefix cache 失效</span><br><span class="line">  方案：记忆立即写磁盘，但 system prompt 下次会话才更新</span><br><span class="line"></span><br><span class="line">设计决策 2：外部记忆 prefetch 注入 user 消息，不注入 system prompt</span><br><span class="line">  原因：每次 recall 结果不同（按当前问题语义检索）</span><br><span class="line">       → 若放 system → 每轮 system 都不同 → 缓存永远失效</span><br><span class="line">  方案：注入 user 消息末尾，system 保持稳定</span><br><span class="line"></span><br><span class="line">设计决策 3：技能完整内容不在 system prompt（只放摘要索引）</span><br><span class="line">  原因：每次激活的技能不同</span><br><span class="line">       → 若技能全文在 system → 每次换技能都破坏缓存</span><br><span class="line">  方案：system 只放摘要索引（稳定），完整内容通过 skill_view 工具加载</span><br><span class="line"></span><br><span class="line">共同原则：</span><br><span class="line">  稳定内容（身份、记忆快照、技能索引）→ system prompt（冻结）</span><br><span class="line">  动态内容（recall 结果、技能全文、nudge）→ user 消息（每轮可变）</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="ephemeral-system-prompt-是什么"><a href="#ephemeral-system-prompt-是什么" class="headerlink" title="ephemeral_system_prompt 是什么"></a>ephemeral_system_prompt 是什么</h3><p><code>ephemeral_system_prompt</code> 是 Hermes 中专门用于<strong>动态、临时</strong>内容注入的机制——它在每次 API 调用时追加到已冻结的 system prompt 后面，但永远不会进入 <code>_cached_system_prompt</code>，也不会持久化到会话数据库。</p>
+<h4 id="核心机制"><a href="#核心机制" class="headerlink" title="核心机制"></a>核心机制</h4><p>每次 API 调用时，最终发送给 LLM 的 system 是两部分的拼接：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">effective_system &#x3D; _cached_system_prompt  +  &quot;\n\n&quot;  +  ephemeral_system_prompt</span><br><span class="line">                ↑ 冻结、缓存、持久化                  ↑ 动态附加、不缓存、不持久化</span><br></pre></td></tr></table></figure>
+
+<p>对应源码（<code>run_agent.py</code>）：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">effective_system &#x3D; self._cached_system_prompt or &quot;&quot;</span><br><span class="line">if self.ephemeral_system_prompt:</span><br><span class="line">    effective_system &#x3D; (effective_system + &quot;\n\n&quot; + self.ephemeral_system_prompt).strip()</span><br><span class="line">if effective_system:</span><br><span class="line">    api_messages &#x3D; [&#123;&quot;role&quot;: &quot;system&quot;, &quot;content&quot;: effective_system&#125;] + api_messages</span><br></pre></td></tr></table></figure>
+
+<h4 id="三种注入来源"><a href="#三种注入来源" class="headerlink" title="三种注入来源"></a>三种注入来源</h4><h5 id="来源-1：CLI-–system-参数-config-yaml-的-agent-system-prompt"><a href="#来源-1：CLI-–system-参数-config-yaml-的-agent-system-prompt" class="headerlink" title="来源 1：CLI –system 参数 / config.yaml 的 agent.system_prompt"></a>来源 1：CLI –system 参数 / config.yaml 的 agent.system_prompt</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># CLI 启动时传入</span><br><span class="line">hermes --system &quot;You are a concise assistant. Reply in one sentence max.&quot;</span><br><span class="line"></span><br><span class="line"># 或写到 config.yaml</span><br><span class="line">agent:</span><br><span class="line">  system_prompt: &quot;You are a concise assistant. Reply in one sentence max.&quot;</span><br></pre></td></tr></table></figure>
+
+<p>CLI 初始化逻辑（<code>cli.py</code>）：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">self.system_prompt &#x3D; (</span><br><span class="line">    os.getenv(&quot;HERMES_EPHEMERAL_SYSTEM_PROMPT&quot;, &quot;&quot;)</span><br><span class="line">    or CLI_CONFIG[&quot;agent&quot;].get(&quot;system_prompt&quot;, &quot;&quot;)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h5 id="来源-2：-personality-命令切换人格"><a href="#来源-2：-personality-命令切换人格" class="headerlink" title="来源 2：/personality 命令切换人格"></a>来源 2：/personality 命令切换人格</h5><p><code>config.yaml</code> 中内置了 4 种人格模板，<code>/personality &lt;name&gt;</code> 命令会即时更新 <code>ephemeral_system_prompt</code>，<strong>无需重启会话即可生效</strong>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># config.yaml 内置人格</span><br><span class="line">personalities:</span><br><span class="line">  helpful:   &quot;You are a helpful, friendly AI assistant.&quot;</span><br><span class="line">  concise:   &quot;You are a concise assistant. Keep responses brief and to the point.&quot;</span><br><span class="line">  technical: &quot;You are a technical expert. Provide detailed, accurate technical information.&quot;</span><br><span class="line">  creative:  &quot;You are a creative assistant. Think outside the box.&quot;</span><br></pre></td></tr></table></figure>
+
+<p><code>/personality none</code> 可清除人格覆盖，恢复基础行为。</p>
+<h5 id="来源-3：Gateway-平台上下文（自动注入）"><a href="#来源-3：Gateway-平台上下文（自动注入）" class="headerlink" title="来源 3：Gateway 平台上下文（自动注入）"></a>来源 3：Gateway 平台上下文（自动注入）</h5><p>Gateway 模式下，<code>ephemeral_system_prompt</code> 由两部分合并而来：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">combined_ephemeral &#x3D; context_prompt          # 平台上下文（自动生成）</span><br><span class="line">                   + self._ephemeral_system_prompt   # 用户配置的自定义 prompt</span><br></pre></td></tr></table></figure>
+
+<p><code>context_prompt</code> 的真实内容示例（来自 <code>build_session_context_prompt()</code>）：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">## Current Session Context</span><br><span class="line"></span><br><span class="line">**Source:** Telegram (DM with @chengpengtao)</span><br><span class="line">**User:** chengpengtao</span><br><span class="line">**Connected Platforms:** local (files on this machine), telegram: Connected ✓</span><br><span class="line">**Home Channels (default destinations):**</span><br><span class="line">  - telegram: My DM (ID: 123456789)</span><br><span class="line"></span><br><span class="line">**Delivery options for scheduled tasks:**</span><br><span class="line">- &quot;origin&quot; → Back to this chat (My DM)</span><br><span class="line">- &quot;local&quot; → Save to local files only (~&#x2F;.hermes&#x2F;cron&#x2F;output&#x2F;)</span><br><span class="line">- &quot;telegram&quot; → Home channel (My DM)</span><br></pre></td></tr></table></figure>
+
+<p>还可能追加特殊场景注解：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 用户首次对话</span><br><span class="line">[System note: This is the user&#39;s very first message ever.</span><br><span class="line">Briefly introduce yourself and mention that &#x2F;help shows available commands.</span><br><span class="line">Keep the introduction concise -- one or two sentences max.]</span><br><span class="line"></span><br><span class="line"># 会话因超时自动重置</span><br><span class="line">[System note: The user&#39;s previous session expired due to inactivity.</span><br><span class="line">This is a fresh conversation with no prior context.]</span><br></pre></td></tr></table></figure>
+
+<h5 id="与-cached-system-prompt-的对比"><a href="#与-cached-system-prompt-的对比" class="headerlink" title="与 _cached_system_prompt 的对比"></a>与 _cached_system_prompt 的对比</h5><table>
+<thead>
+<tr>
+<th>对比维度</th>
+<th>_cached_system_prompt</th>
+<th>ephemeral_system_prompt</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>写入时机</td>
+<td>会话首轮一次性构建</td>
+<td>每次 API 调用时临时拼接</td>
+</tr>
+<tr>
+<td>是否缓存</td>
+<td>是（Anthropic prompt caching）</td>
+<td>否，跳过缓存前缀</td>
+</tr>
+<tr>
+<td>是否持久化</td>
+<td>会话结束后存 session DB</td>
+<td>不存 DB</td>
+</tr>
+<tr>
+<td>修改后生效时机</td>
+<td>需重建（压缩或新会话时触发）</td>
+<td>立即生效（下一轮即生效）</td>
+</tr>
+<tr>
+<td>典型内容</td>
+<td>身份 / memory / skills / 时间戳</td>
+<td>人格覆盖 / 平台上下文 / 临时指令</td>
+</tr>
+<tr>
+<td>设计目的</td>
+<td>稳定前缀，最大化 cache hit 率</td>
+<td>灵活注入动态信息，不破坏缓存</td>
+</tr>
+</tbody></table>
+<blockquote>
+<h2 id="一句话总结"><a href="#一句话总结" class="headerlink" title="一句话总结"></a>一句话总结</h2><p><code>ephemeral_system_prompt</code> 是”每次说悄悄话”——贴在已冻结的 system prompt 后面，不留痕迹，不影响缓存，随时可以换。</p>
+</blockquote>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+    
+    
+
+    
+      
+<div class="post-nav book-nav">
+  
+    <div class="post-nav-prev post-nav-item">
+      <a href="/books/hermes/06-上下文压缩/" rel="prev" title="六、上下文压缩">
+        <span class="post-nav-direction">上一章</span>
+        <span class="post-nav-title">六、上下文压缩</span>
+        <i class="fa fa-chevron-left"></i>
+      </a>
+    </div>
+  
+
+  
+    <div class="post-nav-next post-nav-item">
+      <a href="/books/hermes/08-子Agent委托/" rel="next" title="八、子Agent委托">
+        <span class="post-nav-direction">下一篇</span>
+        <span class="post-nav-title">八、子Agent委托</span>
+        <i class="fa fa-chevron-right"></i>
+      </a>
+    </div>
+  
+</div>
+
+
+    
+
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+     
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.gif"
+                alt="awabuda" />
+            
+              <p class="site-author-name" itemprop="name">awabuda</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/awabuda" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i></a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:awabdua@163.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i></a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#七、Prompt-拼接机制"><span class="nav-number">1.</span> <span class="nav-text">七、Prompt 拼接机制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#System-Prompt-构建全流程"><span class="nav-number">1.1.</span> <span class="nav-text">System Prompt 构建全流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#System-Prompt-N-层结构"><span class="nav-number">1.2.</span> <span class="nav-text">System Prompt N 层结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#System-Prompt-逐层解析（实例分析）"><span class="nav-number">1.3.</span> <span class="nav-text">System Prompt 逐层解析（实例分析）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Build-流程总览"><span class="nav-number">1.3.1.</span> <span class="nav-text">Build 流程总览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#各层详解（以真实-Prompt-为例）"><span class="nav-number">1.3.2.</span> <span class="nav-text">各层详解（以真实 Prompt 为例）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Layer-1-—-代理身份（SOUL-md）"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">Layer 1 — 代理身份（SOUL.md）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Layer-2-—-工具行为引导（Tool-Guidance）"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">Layer 2 — 工具行为引导（Tool Guidance）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Layer-6-—-持久记忆（MEMORY-md-USER-md）"><span class="nav-number">1.3.2.3.</span> <span class="nav-text">Layer 6 — 持久记忆（MEMORY.md + USER.md）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Layer-8-—-技能索引（Skills-Prompt）"><span class="nav-number">1.3.2.4.</span> <span class="nav-text">Layer 8 — 技能索引（Skills Prompt）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Layer-10-—-时间戳-元信息"><span class="nav-number">1.3.2.5.</span> <span class="nav-text">Layer 10 — 时间戳 + 元信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Layer-11-—-平台提示（Platform-Hints）"><span class="nav-number">1.3.2.6.</span> <span class="nav-text">Layer 11 — 平台提示（Platform Hints）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#层级汇总"><span class="nav-number">1.3.2.7.</span> <span class="nav-text">层级汇总</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Prompt-Caching：4-个断点的战略布局"><span class="nav-number">1.4.</span> <span class="nav-text">Prompt Caching：4 个断点的战略布局</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#api-messages-的临时注入层"><span class="nav-number">1.5.</span> <span class="nav-text">api_messages 的临时注入层</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FAQ"><span class="nav-number">1.6.</span> <span class="nav-text">FAQ</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#为什么设计决策都是为了保护缓存"><span class="nav-number">1.6.1.</span> <span class="nav-text">为什么设计决策都是为了保护缓存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ephemeral-system-prompt-是什么"><span class="nav-number">1.6.2.</span> <span class="nav-text">ephemeral_system_prompt 是什么</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#核心机制"><span class="nav-number">1.6.2.1.</span> <span class="nav-text">核心机制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#三种注入来源"><span class="nav-number">1.6.2.2.</span> <span class="nav-text">三种注入来源</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#来源-1：CLI-–system-参数-config-yaml-的-agent-system-prompt"><span class="nav-number">1.6.2.2.1.</span> <span class="nav-text">来源 1：CLI –system 参数 &#x2F; config.yaml 的 agent.system_prompt</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#来源-2：-personality-命令切换人格"><span class="nav-number">1.6.2.2.2.</span> <span class="nav-text">来源 2：&#x2F;personality 命令切换人格</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#来源-3：Gateway-平台上下文（自动注入）"><span class="nav-number">1.6.2.2.3.</span> <span class="nav-text">来源 3：Gateway 平台上下文（自动注入）</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#与-cached-system-prompt-的对比"><span class="nav-number">1.6.2.2.4.</span> <span class="nav-text">与 _cached_system_prompt 的对比</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一句话总结"><span class="nav-number">1.7.</span> <span class="nav-text">一句话总结</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+      
+        <div>
+  <canvas id="canvasDiyBlock" style="width:60%;">当前浏览器不支持canvas，请更换浏览器后再试</canvas>
+  <script>
+    (function () {
+
+      var digit = [
+        [
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 1, 1, 0, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 0, 1, 1, 0],
+          [0, 0, 1, 1, 1, 0, 0]
+        ], //0
+        [
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 1, 1, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [1, 1, 1, 1, 1, 1, 1]
+        ], //1
+        [
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 1, 1, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 1, 1, 1, 1, 1]
+        ], //2
+        [
+          [1, 1, 1, 1, 1, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //3
+        [
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 1, 0],
+          [0, 0, 1, 1, 1, 1, 0],
+          [0, 1, 1, 0, 1, 1, 0],
+          [1, 1, 0, 0, 1, 1, 0],
+          [1, 1, 1, 1, 1, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 1, 1]
+        ], //4
+        [
+          [1, 1, 1, 1, 1, 1, 1],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 1, 1, 1, 1, 0],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //5
+        [
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 1, 1, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 0, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //6
+        [
+          [1, 1, 1, 1, 1, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0]
+        ], //7
+        [
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //8
+        [
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 1, 1, 0, 0, 0, 0]
+        ], //9
+        [
+          [0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0]
+        ] //:
+      ];
+
+      var canvas = document.getElementById('canvasDiyBlock');
+      if (canvas.getContext) {
+        var cxt = canvas.getContext('2d');
+        //声明canvas的宽高
+        var H = 100,
+          W = 700;
+        canvas.height = H;
+        canvas.width = W;
+        cxt.fillStyle = '#f00';
+        cxt.fillRect(10, 10, 50, 50);
+
+        //存储时间数据
+        var data = [];
+        //存储运动的小球
+        var balls = [];
+        //设置粒子半径
+        var R = canvas.height / 20 - 1;
+        (function () {
+          var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+          //存储时间数字，由十位小时、个位小时、冒号、十位分钟、个位分钟、冒号、十位秒钟、个位秒钟这7个数字组成
+          data.push(temp[1], temp[2], 10, temp[3], temp[4], 10, temp[5], temp[6]);
+        })();
+
+        /*生成点阵数字*/
+        function renderDigit(index, num) {
+          for (var i = 0; i < digit[num].length; i++) {
+            for (var j = 0; j < digit[num][i].length; j++) {
+              if (digit[num][i][j] == 1) {
+                cxt.beginPath();
+                cxt.arc(14 * (R + 2) * index + j * 2 * (R + 1) + (R + 1), i * 2 * (R + 1) + (R + 1), R, 0, 2 * Math
+                  .PI);
+                cxt.closePath();
+                cxt.fill();
+              }
+            }
+          }
+        }
+
+        /*更新时钟*/
+        function updateDigitTime() {
+          var changeNumArray = [];
+          var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+          var NewData = [];
+          NewData.push(temp[1], temp[2], 10, temp[3], temp[4], 10, temp[5], temp[6]);
+          for (var i = data.length - 1; i >= 0; i--) {
+            //时间发生变化
+            if (NewData[i] !== data[i]) {
+              //将变化的数字值和在data数组中的索引存储在changeNumArray数组中
+              changeNumArray.push(i + '_' + (Number(data[i]) + 1) % 10);
+            }
+          }
+          //增加小球
+          for (var i = 0; i < changeNumArray.length; i++) {
+            addBalls.apply(this, changeNumArray[i].split('_'));
+          }
+          data = NewData.concat();
+        }
+
+        /*更新小球状态*/
+        function updateBalls() {
+          for (var i = 0; i < balls.length; i++) {
+            balls[i].stepY += balls[i].disY;
+            balls[i].x += balls[i].stepX;
+            balls[i].y += balls[i].stepY;
+            if (balls[i].x > W + R || balls[i].y > H + R) {
+              balls.splice(i, 1);
+              i--;
+            }
+          }
+        }
+
+        /*增加要运动的小球*/
+        function addBalls(index, num) {
+          var numArray = [1, 2, 3];
+          var colorArray = ["#3BE", "#09C", "#A6C", "#93C", "#9C0", "#690", "#FB3", "#F80", "#F44", "#C00"];
+          for (var i = 0; i < digit[num].length; i++) {
+            for (var j = 0; j < digit[num][i].length; j++) {
+              if (digit[num][i][j] == 1) {
+                var ball = {
+                  x: 14 * (R + 2) * index + j * 2 * (R + 1) + (R + 1),
+                  y: i * 2 * (R + 1) + (R + 1),
+                  stepX: Math.floor(Math.random() * 4 - 2),
+                  stepY: -2 * numArray[Math.floor(Math.random() * numArray.length)],
+                  color: colorArray[Math.floor(Math.random() * colorArray.length)],
+                  disY: 1
+                };
+                balls.push(ball);
+              }
+            }
+          }
+        }
+
+        /*渲染*/
+        function render() {
+          //重置画布宽度，达到清空画布的效果
+          canvas.height = 100;
+          //渲染时钟
+          for (var i = 0; i < data.length; i++) {
+            renderDigit(i, data[i]);
+          }
+          //渲染小球
+          for (var i = 0; i < balls.length; i++) {
+            cxt.beginPath();
+            cxt.arc(balls[i].x, balls[i].y, R, 0, 2 * Math.PI);
+            cxt.fillStyle = balls[i].color;
+            cxt.closePath();
+            cxt.fill();
+          }
+        }
+
+        clearInterval(oTimer);
+        var oTimer = setInterval(function () {
+          //更新时钟
+          updateDigitTime();
+          //更新小球状态
+          updateBalls();
+          //渲染
+          render();
+        }, 50);
+      }
+    })();
+
+  </script>
+
+
+</div>
+
+      
+
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">awabuda</span>
+
+  
+</div>
+
+
+
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+  
+  
+
+
+
+  
+  
+
+
+
+  
+  
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_sphere.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item=>{
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: true,
+        notify: false,
+        appId: 'DBST5TYeCj1kQTDDNozqqYJ7-gzGzoHsz',
+        appKey: '3U5lXDpHXEHKjMOrQtSQSWk6',
+        placeholder: '请留下您宝贵的意见',
+        avatar:'wavatar',
+        guest_info:guest,
+        pageSize:'10' || 10,
+    });
+  </script>
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("DBST5TYeCj1kQTDDNozqqYJ7-gzGzoHsz", "3U5lXDpHXEHKjMOrQtSQSWk6");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof mermaid === 'undefined') return;
+      mermaid.initialize({
+        theme: 'default',
+        startOnLoad: true,
+        securityLevel: 'loose',
+        flowchart: { useMaxWidth: true, htmlLabels: true },
+        sequence: { useMaxWidth: true, htmlLabels: true }
+      });
+      mermaid.run({ querySelector: '.mermaid' });
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+  <script>
+  !function (e, t, a) { function n() { c(".heart{width: 10px;height: 10px;position: fixed;background: #f00;transform: rotate(45deg);-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);}.heart:after,.heart:before{content: '';width: inherit;height: inherit;background: inherit;border-radius: 50%;-webkit-border-radius: 50%;-moz-border-radius: 50%;position: fixed;}.heart:after{top: -5px;}.heart:before{left: -5px;}"), o(), r() } function r() { for (var e = 0; e < d.length; e++)d[e].alpha <= 0 ? (t.body.removeChild(d[e].el), d.splice(e, 1)) : (d[e].y-- , d[e].scale += .004, d[e].alpha -= .013, d[e].el.style.cssText = "left:" + d[e].x + "px;top:" + d[e].y + "px;opacity:" + d[e].alpha + ";transform:scale(" + d[e].scale + "," + d[e].scale + ") rotate(45deg);background:" + d[e].color + ";z-index:99999"); requestAnimationFrame(r) } function o() { var t = "function" == typeof e.onclick && e.onclick; e.onclick = function (e) { t && t(), i(e) } } function i(e) { var a = t.createElement("div"); a.className = "heart", d.push({ el: a, x: e.clientX - 5, y: e.clientY - 5, scale: 1, alpha: 1, color: s() }), t.body.appendChild(a) } function c(e) { var a = t.createElement("style"); a.type = "text/css"; try { a.appendChild(t.createTextNode(e)) } catch (t) { a.styleSheet.cssText = e } t.getElementsByTagName("head")[0].appendChild(a) } function s() { return "rgb(" + ~~(255 * Math.random()) + "," + ~~(255 * Math.random()) + "," + ~~(255 * Math.random()) + ")" } var d = []; e.requestAnimationFrame = function () { return e.requestAnimationFrame || e.webkitRequestAnimationFrame || e.mozRequestAnimationFrame || e.oRequestAnimationFrame || e.msRequestAnimationFrame || function (e) { setTimeout(e, 1e3 / 60) } }(), n() }(window, document);
+</script>
+</body>
+</html>

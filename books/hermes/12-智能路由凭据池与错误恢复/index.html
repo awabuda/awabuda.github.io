@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+  
+
+<link href="//cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="js,node,小程序,ts" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="十二、智能路由、凭据池与错误恢复(待验证) 结论先行：Hermes 的可靠性由三层机制保障。智能路由：简单对话自动降级廉价模型，降低成本；凭据池：多 API Key 轮换 + OAuth 自动刷新，确保高并发下不断线；错误分类与重试：15 类错误精确分类，对症下药，而非无脑重试。三者协作，让 Hermes 在 API 限速、Key 耗尽、网络抖动等场景下自愈。   12.1 三层可靠性机制全景 f">
+<meta property="og:type" content="website">
+<meta property="og:title" content="十二、智能路由凭据池与错误恢复">
+<meta property="og:url" content="http://yoursite.com/books/hermes/12-%E6%99%BA%E8%83%BD%E8%B7%AF%E7%94%B1%E5%87%AD%E6%8D%AE%E6%B1%A0%E4%B8%8E%E9%94%99%E8%AF%AF%E6%81%A2%E5%A4%8D/index.html">
+<meta property="og:site_name" content="悟凌斋">
+<meta property="og:description" content="十二、智能路由、凭据池与错误恢复(待验证) 结论先行：Hermes 的可靠性由三层机制保障。智能路由：简单对话自动降级廉价模型，降低成本；凭据池：多 API Key 轮换 + OAuth 自动刷新，确保高并发下不断线；错误分类与重试：15 类错误精确分类，对症下药，而非无脑重试。三者协作，让 Hermes 在 API 限速、Key 耗尽、网络抖动等场景下自愈。   12.1 三层可靠性机制全景 f">
+<meta property="article:published_time" content="2026-05-25T06:35:19.643Z">
+<meta property="article:modified_time" content="2026-05-25T06:35:19.643Z">
+<meta property="article:author" content="awabuda">
+<meta property="article:tag" content="博客">
+<meta property="article:tag" content="js">
+<meta property="article:tag" content="前端">
+<meta property="article:tag" content="node">
+<meta property="article:tag" content="vue">
+<meta property="article:tag" content="react">
+<meta property="article:tag" content="koa">
+<meta property="article:tag" content="算法">
+<meta property="article:tag" content="css">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/books/hermes/12-智能路由凭据池与错误恢复/"/>
+
+
+
+
+
+  <title>十二、智能路由凭据池与错误恢复 | 悟凌斋</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?b376e3ef6e386ad73d4f7661ebfc0d25";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">悟凌斋</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">一行代码翘起整个前端</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+	<h2 class="post-title" itemprop="name headline">十二、智能路由凭据池与错误恢复</h2>
+
+
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+        
+          <h1 id="十二、智能路由、凭据池与错误恢复-待验证"><a href="#十二、智能路由、凭据池与错误恢复-待验证" class="headerlink" title="十二、智能路由、凭据池与错误恢复(待验证)"></a>十二、智能路由、凭据池与错误恢复(待验证)</h1><blockquote>
+<p><strong>结论先行</strong>：Hermes 的可靠性由三层机制保障。<strong>智能路由</strong>：简单对话自动降级廉价模型，降低成本；<strong>凭据池</strong>：多 API Key 轮换 + OAuth 自动刷新，确保高并发下不断线；<strong>错误分类与重试</strong>：15 类错误精确分类，对症下药，而非无脑重试。三者协作，让 Hermes 在 API 限速、Key 耗尽、网络抖动等场景下自愈。</p>
+</blockquote>
+<hr>
+<h2 id="12-1-三层可靠性机制全景"><a href="#12-1-三层可靠性机制全景" class="headerlink" title="12.1 三层可靠性机制全景"></a>12.1 三层可靠性机制全景</h2><pre class="mermaid">
+flowchart TD
+
+
+    A[用户消息] --> B{智能路由判断}
+
+
+    B -->|简单消息 < 160字| C[廉价模型 e.g. gemini-flash]
+
+
+    B -->|复杂消息/含代码/关键词| D[主模型 e.g. claude-opus]
+
+
+    C --> E[CredentialPool.current、（、）]
+
+
+    D --> E
+
+
+    E --> F[API 调用]
+
+
+    F --> G{成功?}
+
+
+    G -->|是| H[返回结果]
+
+
+    G -->|否| I[error_classifier.classify]
+
+
+    I --> J{错误类型}
+
+
+    J -->|rate_limit/429| K[标记当前 Key 耗尽<br/>轮换到下一个 Key]
+
+
+    J -->|billing/402| K
+
+
+    J -->|auth/401| L[OAuth 刷新 Token]
+
+
+    J -->|context_overflow| M[触发上下文压缩]
+
+
+    J -->|timeout/503| N[指数退避重试]
+
+
+    K --> E
+
+
+    L --> F
+
+
+    M --> D
+
+
+    N --> F
+</pre>
+
+
+
+<h2 id="12-2-智能模型路由"><a href="#12-2-智能模型路由" class="headerlink" title="12.2 智能模型路由"></a>12.2 智能模型路由</h2><p><code>agent/smart_model_routing.py</code> 实现”简单对话降级廉价模型”的启发式策略：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">choose_cheap_model_route</span><span class="params">(user_message, routing_config)</span>:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">    保守策略：任何复杂迹象都保持主模型。</span></span><br><span class="line"><span class="string">    只有明确"看起来简单"时才路由到廉价模型。</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    text = user_message.strip()</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 任一条件触发 → 使用主模型（保守）</span></span><br><span class="line">    <span class="keyword">if</span> len(text) &gt; <span class="number">160</span>:              <span class="comment"># 超过 160 字符</span></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">None</span></span><br><span class="line">    <span class="keyword">if</span> len(text.split()) &gt; <span class="number">28</span>:       <span class="comment"># 超过 28 个词</span></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">None</span></span><br><span class="line">    <span class="keyword">if</span> text.count(<span class="string">"\n"</span>) &gt; <span class="number">1</span>:         <span class="comment"># 多行消息</span></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">None</span></span><br><span class="line">    <span class="keyword">if</span> <span class="string">"```"</span> <span class="keyword">in</span> text <span class="keyword">or</span> <span class="string">"`"</span> <span class="keyword">in</span> text:  <span class="comment"># 包含代码块</span></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">None</span></span><br><span class="line">    <span class="keyword">if</span> URL_RE.search(text):           <span class="comment"># 包含 URL</span></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">None</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 关键词命中复杂任务集合 → 使用主模型</span></span><br><span class="line">    COMPLEX_KEYWORDS = &#123;</span><br><span class="line">        <span class="string">"debug"</span>, <span class="string">"implement"</span>, <span class="string">"refactor"</span>, <span class="string">"analyze"</span>, <span class="string">"deploy"</span>,</span><br><span class="line">        <span class="string">"docker"</span>, <span class="string">"kubernetes"</span>, <span class="string">"optimize"</span>, <span class="string">"architect"</span>, ...</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> any(w <span class="keyword">in</span> COMPLEX_KEYWORDS <span class="keyword">for</span> w <span class="keyword">in</span> text.lower().split()):</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">None</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 通过所有检测 → 路由到廉价模型</span></span><br><span class="line">    <span class="keyword">return</span> routing_config.cheap_model</span><br></pre></td></tr></table></figure>
+
+<p><strong>不破坏 Prompt 缓存</strong>：路由发生在每轮 LLM 调用前，system prompt 本身不变，Anthropic/OpenAI 的 Prompt 缓存依然有效。</p>
+<hr>
+<h2 id="12-3-凭据池（CredentialPool）"><a href="#12-3-凭据池（CredentialPool）" class="headerlink" title="12.3 凭据池（CredentialPool）"></a>12.3 凭据池（CredentialPool）</h2><p><code>agent/credential_pool.py</code> 管理多 API Key 的状态、轮换与 OAuth Token 生命周期。</p>
+<h3 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@dataclass</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">PooledCredential</span>:</span></span><br><span class="line">    provider: str           <span class="comment"># e.g. "anthropic", "openrouter"</span></span><br><span class="line">    id: str                 <span class="comment"># 唯一 ID</span></span><br><span class="line">    auth_type: str          <span class="comment"># "api_key" 或 "oauth"</span></span><br><span class="line">    access_token: str       <span class="comment"># 当前可用 Token</span></span><br><span class="line">    refresh_token: str      <span class="comment"># OAuth 刷新 Token</span></span><br><span class="line">    last_status: str        <span class="comment"># "ok" 或 "exhausted"</span></span><br><span class="line">    last_error_code: int    <span class="comment"># 上次失败的 HTTP 状态码（429/402 等）</span></span><br><span class="line">    last_error_reset_at: float  <span class="comment"># 服务商提供的重置时间戳</span></span><br><span class="line">    request_count: int      <span class="comment"># 历史请求计数</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="fill-first-策略（默认）"><a href="#fill-first-策略（默认）" class="headerlink" title="fill_first 策略（默认）"></a>fill_first 策略（默认）</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Key 池状态：</span><br><span class="line">    key1: status&#x3D;ok,         requests&#x3D;450</span><br><span class="line">    key2: status&#x3D;exhausted,  last_fail_at&#x3D;14:23, reset_at&#x3D;15:23</span><br><span class="line">    key3: status&#x3D;ok,         requests&#x3D;120</span><br><span class="line"></span><br><span class="line">fill_first 选择顺序：</span><br><span class="line">    1. key1（优先用满第一个 Key，充分利用 tier 配额）</span><br><span class="line">    2. key3（key1 耗尽后切换）</span><br><span class="line">    3. key2（等冷却结束后恢复）</span><br><span class="line"></span><br><span class="line">对比 round_robin：轮流使用每个 Key，适合均衡场景</span><br><span class="line">对比 least_used：优先选请求数最少的 Key</span><br></pre></td></tr></table></figure>
+
+<h3 id="故障转移时序"><a href="#故障转移时序" class="headerlink" title="故障转移时序"></a>故障转移时序</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">API 调用 → 429 Too Many Requests</span><br><span class="line">    │</span><br><span class="line">    ├── 当前 Key 标记为 exhausted</span><br><span class="line">    │   last_error_reset_at &#x3D; 服务商返回的 reset 时间（若有）</span><br><span class="line">    │   否则默认冷却 1 小时</span><br><span class="line">    │</span><br><span class="line">    ├── credential_pool.get_next() 选下一个可用 Key</span><br><span class="line">    │   ├── 有可用 Key → 切换，立即重试</span><br><span class="line">    │   └── 所有 Key 耗尽 → 等待最短冷却时间后重试</span><br><span class="line">    │</span><br><span class="line">    └── 子 Agent 共享同一 CredentialPool</span><br><span class="line">        子 Agent 限速时也能自动从池中轮换</span><br></pre></td></tr></table></figure>
+
+<h3 id="OAuth-Token-自动刷新"><a href="#OAuth-Token-自动刷新" class="headerlink" title="OAuth Token 自动刷新"></a>OAuth Token 自动刷新</h3><p>对于 Codex、Claude（OAuth 认证方式），凭据池在 Token 过期前 5 分钟自动刷新：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 刷新触发条件</span></span><br><span class="line">CODEX_ACCESS_TOKEN_REFRESH_SKEW_SECONDS = <span class="number">300</span>  <span class="comment"># 过期前 5 分钟刷新</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> _codex_access_token_is_expiring(entry):</span><br><span class="line">    new_tokens = oauth.refresh(entry.refresh_token)</span><br><span class="line">    pool.update_entry(entry, access_token=new_tokens.access_token)</span><br><span class="line">    <span class="comment"># 同步回 ~/.codex/auth.json 或 ~/.claude/.credentials.json</span></span><br><span class="line">    <span class="comment"># 防止外部程序下次加载到旧 token（单次使用 refresh token 保护）</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="12-4-错误分类体系"><a href="#12-4-错误分类体系" class="headerlink" title="12.4 错误分类体系"></a>12.4 错误分类体系</h2><p><code>agent/error_classifier.py</code> 提供<strong>优先级排列的分类流水线</strong>，每次 API 失败都经过以下分类，返回 <code>ClassifiedError</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">分类优先级（从高到低）：</span><br><span class="line"></span><br><span class="line">1. Provider 特定模式（最高优先级）</span><br><span class="line">   ├── Anthropic thinking 签名无效 (400 + &quot;signature&quot; + &quot;thinking&quot;)</span><br><span class="line">   └── Anthropic 长上下文 tier 限制 (429 + &quot;extra usage&quot; + &quot;long context&quot;)</span><br><span class="line"></span><br><span class="line">2. HTTP 状态码 + 消息细化</span><br><span class="line">   ├── 401&#x2F;403 → auth（触发 Token 刷新&#x2F;轮换）</span><br><span class="line">   ├── 402     → billing（立即轮换 Key，不重试）</span><br><span class="line">   ├── 429     → rate_limit 或 billing（区分：有 &quot;try again&quot; 是 rate_limit）</span><br><span class="line">   ├── 413     → payload_too_large（压缩上下文）</span><br><span class="line">   ├── 500&#x2F;502 → server_error（退避重试）</span><br><span class="line">   └── 503&#x2F;529 → overloaded（退避重试）</span><br><span class="line"></span><br><span class="line">3. 消息模式匹配（无状态码时）</span><br><span class="line">   ├── &quot;context length&quot; &#x2F; &quot;too many tokens&quot; → context_overflow（压缩）</span><br><span class="line">   ├── &quot;model not found&quot; &#x2F; &quot;invalid model&quot;  → model_not_found（切换模型）</span><br><span class="line">   └── 传输错误类型（ReadTimeout, ConnectError 等） → timeout</span><br><span class="line"></span><br><span class="line">4. 兜底：unknown（退避重试）</span><br></pre></td></tr></table></figure>
+
+<h3 id="ClassifiedError-结构"><a href="#ClassifiedError-结构" class="headerlink" title="ClassifiedError 结构"></a>ClassifiedError 结构</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@dataclass</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ClassifiedError</span>:</span></span><br><span class="line">    reason: FailoverReason         <span class="comment"># 错误类型枚举</span></span><br><span class="line">    status_code: Optional[int]     <span class="comment"># HTTP 状态码</span></span><br><span class="line">    message: str                   <span class="comment"># 摘要消息</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 恢复动作提示（run_agent.py 重试循环据此决策）</span></span><br><span class="line">    retryable: bool                  <span class="comment"># 是否值得重试</span></span><br><span class="line">    should_compress: bool            <span class="comment"># 是否触发上下文压缩</span></span><br><span class="line">    should_rotate_credential: bool   <span class="comment"># 是否轮换 API Key</span></span><br><span class="line">    should_fallback: bool            <span class="comment"># 是否切换到备用 Provider</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="12-5-重试策略（抖动退避）"><a href="#12-5-重试策略（抖动退避）" class="headerlink" title="12.5 重试策略（抖动退避）"></a>12.5 重试策略（抖动退避）</h2><p><code>agent/retry_utils.py</code> 实现抖动指数退避，防止多个并发 Agent 的重试同时打到服务商（惊群效应）：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">jitter_backoff</span><span class="params">(attempt: int, base: float = <span class="number">1.0</span>, max_delay: float = <span class="number">60.0</span>)</span> -&gt; float:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">    指数退避 + 随机抖动</span></span><br><span class="line"><span class="string">    attempt=0: 0.5~1.5s</span></span><br><span class="line"><span class="string">    attempt=1: 1.0~3.0s</span></span><br><span class="line"><span class="string">    attempt=2: 2.0~6.0s</span></span><br><span class="line"><span class="string">    attempt=3: 4.0~12.0s</span></span><br><span class="line"><span class="string">    上限 60s</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    delay = base * (<span class="number">2</span> ** attempt)</span><br><span class="line">    delay = min(delay, max_delay)</span><br><span class="line">    jitter = delay * random.uniform(<span class="number">0.5</span>, <span class="number">1.5</span>)  <span class="comment"># ±50% 随机抖动</span></span><br><span class="line">    <span class="keyword">return</span> min(jitter, max_delay)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="12-6-错误→恢复动作映射表"><a href="#12-6-错误→恢复动作映射表" class="headerlink" title="12.6 错误→恢复动作映射表"></a>12.6 错误→恢复动作映射表</h2><table>
+<thead>
+<tr>
+<th>错误类型</th>
+<th>HTTP</th>
+<th>恢复动作</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>rate_limit</code></td>
+<td>429</td>
+<td>抖动退避 + 轮换 Key（冷却 1h）</td>
+</tr>
+<tr>
+<td><code>billing</code></td>
+<td>402</td>
+<td>立即轮换 Key（停止重试当前 Key）</td>
+</tr>
+<tr>
+<td><code>auth</code></td>
+<td>401/403</td>
+<td>刷新 OAuth Token，失败则轮换 Key</td>
+</tr>
+<tr>
+<td><code>context_overflow</code></td>
+<td>400</td>
+<td>触发上下文压缩，不轮换 Key</td>
+</tr>
+<tr>
+<td><code>timeout</code></td>
+<td>-</td>
+<td>重建 HTTP 客户端，退避重试</td>
+</tr>
+<tr>
+<td><code>overloaded</code></td>
+<td>503/529</td>
+<td>退避重试（不轮换，服务商过载）</td>
+</tr>
+<tr>
+<td><code>server_error</code></td>
+<td>500/502</td>
+<td>退避重试</td>
+</tr>
+<tr>
+<td><code>model_not_found</code></td>
+<td>404</td>
+<td>切换备用模型/Provider</td>
+</tr>
+<tr>
+<td><code>thinking_signature</code></td>
+<td>400</td>
+<td>清除 thinking block，重试</td>
+</tr>
+</tbody></table>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+    
+    
+
+    
+      
+<div class="post-nav book-nav">
+  
+    <div class="post-nav-prev post-nav-item">
+      <a href="/books/hermes/11-execute_code程序化工具调用/" rel="prev" title="十一、execute_code程序化工具调用">
+        <span class="post-nav-direction">上一章</span>
+        <span class="post-nav-title">十一、execute_code程序化工具调用</span>
+        <i class="fa fa-chevron-left"></i>
+      </a>
+    </div>
+  
+
+  
+    <div class="post-nav-next post-nav-item">
+      <a href="/books/hermes/13-终端多环境ACP适配器与Gateway平台/" rel="next" title="十三、终端多环境ACP适配器与Gateway平台">
+        <span class="post-nav-direction">下一篇</span>
+        <span class="post-nav-title">十三、终端多环境ACP适配器与Gateway平台</span>
+        <i class="fa fa-chevron-right"></i>
+      </a>
+    </div>
+  
+</div>
+
+
+    
+
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+     
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.gif"
+                alt="awabuda" />
+            
+              <p class="site-author-name" itemprop="name">awabuda</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/awabuda" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i></a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:awabdua@163.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i></a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#十二、智能路由、凭据池与错误恢复-待验证"><span class="nav-number">1.</span> <span class="nav-text">十二、智能路由、凭据池与错误恢复(待验证)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#12-1-三层可靠性机制全景"><span class="nav-number">1.1.</span> <span class="nav-text">12.1 三层可靠性机制全景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-2-智能模型路由"><span class="nav-number">1.2.</span> <span class="nav-text">12.2 智能模型路由</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-3-凭据池（CredentialPool）"><span class="nav-number">1.3.</span> <span class="nav-text">12.3 凭据池（CredentialPool）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#数据结构"><span class="nav-number">1.3.1.</span> <span class="nav-text">数据结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#fill-first-策略（默认）"><span class="nav-number">1.3.2.</span> <span class="nav-text">fill_first 策略（默认）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#故障转移时序"><span class="nav-number">1.3.3.</span> <span class="nav-text">故障转移时序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OAuth-Token-自动刷新"><span class="nav-number">1.3.4.</span> <span class="nav-text">OAuth Token 自动刷新</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-4-错误分类体系"><span class="nav-number">1.4.</span> <span class="nav-text">12.4 错误分类体系</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ClassifiedError-结构"><span class="nav-number">1.4.1.</span> <span class="nav-text">ClassifiedError 结构</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-5-重试策略（抖动退避）"><span class="nav-number">1.5.</span> <span class="nav-text">12.5 重试策略（抖动退避）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-6-错误→恢复动作映射表"><span class="nav-number">1.6.</span> <span class="nav-text">12.6 错误→恢复动作映射表</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+      
+        <div>
+  <canvas id="canvasDiyBlock" style="width:60%;">当前浏览器不支持canvas，请更换浏览器后再试</canvas>
+  <script>
+    (function () {
+
+      var digit = [
+        [
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 1, 1, 0, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 0, 1, 1, 0],
+          [0, 0, 1, 1, 1, 0, 0]
+        ], //0
+        [
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 1, 1, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [1, 1, 1, 1, 1, 1, 1]
+        ], //1
+        [
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 1, 1, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 1, 1, 1, 1, 1]
+        ], //2
+        [
+          [1, 1, 1, 1, 1, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //3
+        [
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 1, 0],
+          [0, 0, 1, 1, 1, 1, 0],
+          [0, 1, 1, 0, 1, 1, 0],
+          [1, 1, 0, 0, 1, 1, 0],
+          [1, 1, 1, 1, 1, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 1, 1]
+        ], //4
+        [
+          [1, 1, 1, 1, 1, 1, 1],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 1, 1, 1, 1, 0],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //5
+        [
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 1, 1, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 0, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //6
+        [
+          [1, 1, 1, 1, 1, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0]
+        ], //7
+        [
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //8
+        [
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 1, 1, 0, 0, 0, 0]
+        ], //9
+        [
+          [0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0]
+        ] //:
+      ];
+
+      var canvas = document.getElementById('canvasDiyBlock');
+      if (canvas.getContext) {
+        var cxt = canvas.getContext('2d');
+        //声明canvas的宽高
+        var H = 100,
+          W = 700;
+        canvas.height = H;
+        canvas.width = W;
+        cxt.fillStyle = '#f00';
+        cxt.fillRect(10, 10, 50, 50);
+
+        //存储时间数据
+        var data = [];
+        //存储运动的小球
+        var balls = [];
+        //设置粒子半径
+        var R = canvas.height / 20 - 1;
+        (function () {
+          var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+          //存储时间数字，由十位小时、个位小时、冒号、十位分钟、个位分钟、冒号、十位秒钟、个位秒钟这7个数字组成
+          data.push(temp[1], temp[2], 10, temp[3], temp[4], 10, temp[5], temp[6]);
+        })();
+
+        /*生成点阵数字*/
+        function renderDigit(index, num) {
+          for (var i = 0; i < digit[num].length; i++) {
+            for (var j = 0; j < digit[num][i].length; j++) {
+              if (digit[num][i][j] == 1) {
+                cxt.beginPath();
+                cxt.arc(14 * (R + 2) * index + j * 2 * (R + 1) + (R + 1), i * 2 * (R + 1) + (R + 1), R, 0, 2 * Math
+                  .PI);
+                cxt.closePath();
+                cxt.fill();
+              }
+            }
+          }
+        }
+
+        /*更新时钟*/
+        function updateDigitTime() {
+          var changeNumArray = [];
+          var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+          var NewData = [];
+          NewData.push(temp[1], temp[2], 10, temp[3], temp[4], 10, temp[5], temp[6]);
+          for (var i = data.length - 1; i >= 0; i--) {
+            //时间发生变化
+            if (NewData[i] !== data[i]) {
+              //将变化的数字值和在data数组中的索引存储在changeNumArray数组中
+              changeNumArray.push(i + '_' + (Number(data[i]) + 1) % 10);
+            }
+          }
+          //增加小球
+          for (var i = 0; i < changeNumArray.length; i++) {
+            addBalls.apply(this, changeNumArray[i].split('_'));
+          }
+          data = NewData.concat();
+        }
+
+        /*更新小球状态*/
+        function updateBalls() {
+          for (var i = 0; i < balls.length; i++) {
+            balls[i].stepY += balls[i].disY;
+            balls[i].x += balls[i].stepX;
+            balls[i].y += balls[i].stepY;
+            if (balls[i].x > W + R || balls[i].y > H + R) {
+              balls.splice(i, 1);
+              i--;
+            }
+          }
+        }
+
+        /*增加要运动的小球*/
+        function addBalls(index, num) {
+          var numArray = [1, 2, 3];
+          var colorArray = ["#3BE", "#09C", "#A6C", "#93C", "#9C0", "#690", "#FB3", "#F80", "#F44", "#C00"];
+          for (var i = 0; i < digit[num].length; i++) {
+            for (var j = 0; j < digit[num][i].length; j++) {
+              if (digit[num][i][j] == 1) {
+                var ball = {
+                  x: 14 * (R + 2) * index + j * 2 * (R + 1) + (R + 1),
+                  y: i * 2 * (R + 1) + (R + 1),
+                  stepX: Math.floor(Math.random() * 4 - 2),
+                  stepY: -2 * numArray[Math.floor(Math.random() * numArray.length)],
+                  color: colorArray[Math.floor(Math.random() * colorArray.length)],
+                  disY: 1
+                };
+                balls.push(ball);
+              }
+            }
+          }
+        }
+
+        /*渲染*/
+        function render() {
+          //重置画布宽度，达到清空画布的效果
+          canvas.height = 100;
+          //渲染时钟
+          for (var i = 0; i < data.length; i++) {
+            renderDigit(i, data[i]);
+          }
+          //渲染小球
+          for (var i = 0; i < balls.length; i++) {
+            cxt.beginPath();
+            cxt.arc(balls[i].x, balls[i].y, R, 0, 2 * Math.PI);
+            cxt.fillStyle = balls[i].color;
+            cxt.closePath();
+            cxt.fill();
+          }
+        }
+
+        clearInterval(oTimer);
+        var oTimer = setInterval(function () {
+          //更新时钟
+          updateDigitTime();
+          //更新小球状态
+          updateBalls();
+          //渲染
+          render();
+        }, 50);
+      }
+    })();
+
+  </script>
+
+
+</div>
+
+      
+
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">awabuda</span>
+
+  
+</div>
+
+
+
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+  
+  
+
+
+
+  
+  
+
+
+
+  
+  
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_sphere.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item=>{
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: true,
+        notify: false,
+        appId: 'DBST5TYeCj1kQTDDNozqqYJ7-gzGzoHsz',
+        appKey: '3U5lXDpHXEHKjMOrQtSQSWk6',
+        placeholder: '请留下您宝贵的意见',
+        avatar:'wavatar',
+        guest_info:guest,
+        pageSize:'10' || 10,
+    });
+  </script>
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("DBST5TYeCj1kQTDDNozqqYJ7-gzGzoHsz", "3U5lXDpHXEHKjMOrQtSQSWk6");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof mermaid === 'undefined') return;
+      mermaid.initialize({
+        theme: 'default',
+        startOnLoad: true,
+        securityLevel: 'loose',
+        flowchart: { useMaxWidth: true, htmlLabels: true },
+        sequence: { useMaxWidth: true, htmlLabels: true }
+      });
+      mermaid.run({ querySelector: '.mermaid' });
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+  <script>
+  !function (e, t, a) { function n() { c(".heart{width: 10px;height: 10px;position: fixed;background: #f00;transform: rotate(45deg);-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);}.heart:after,.heart:before{content: '';width: inherit;height: inherit;background: inherit;border-radius: 50%;-webkit-border-radius: 50%;-moz-border-radius: 50%;position: fixed;}.heart:after{top: -5px;}.heart:before{left: -5px;}"), o(), r() } function r() { for (var e = 0; e < d.length; e++)d[e].alpha <= 0 ? (t.body.removeChild(d[e].el), d.splice(e, 1)) : (d[e].y-- , d[e].scale += .004, d[e].alpha -= .013, d[e].el.style.cssText = "left:" + d[e].x + "px;top:" + d[e].y + "px;opacity:" + d[e].alpha + ";transform:scale(" + d[e].scale + "," + d[e].scale + ") rotate(45deg);background:" + d[e].color + ";z-index:99999"); requestAnimationFrame(r) } function o() { var t = "function" == typeof e.onclick && e.onclick; e.onclick = function (e) { t && t(), i(e) } } function i(e) { var a = t.createElement("div"); a.className = "heart", d.push({ el: a, x: e.clientX - 5, y: e.clientY - 5, scale: 1, alpha: 1, color: s() }), t.body.appendChild(a) } function c(e) { var a = t.createElement("style"); a.type = "text/css"; try { a.appendChild(t.createTextNode(e)) } catch (t) { a.styleSheet.cssText = e } t.getElementsByTagName("head")[0].appendChild(a) } function s() { return "rgb(" + ~~(255 * Math.random()) + "," + ~~(255 * Math.random()) + "," + ~~(255 * Math.random()) + ")" } var d = []; e.requestAnimationFrame = function () { return e.requestAnimationFrame || e.webkitRequestAnimationFrame || e.mozRequestAnimationFrame || e.oRequestAnimationFrame || e.msRequestAnimationFrame || function (e) { setTimeout(e, 1e3 / 60) } }(), n() }(window, document);
+</script>
+</body>
+</html>

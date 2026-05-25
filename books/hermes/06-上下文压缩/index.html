@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+  
+
+<link href="//cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="js,node,小程序,ts" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="六、上下文压缩LLM 的上下文窗口是有限的。一个长期运行的 Agent（处理复杂编码任务、多步骤研究）在数百轮对话后，messages 列表的 token 总量会轻松超过 100K，触碰模型的硬限制。 Hermes 的上下文工程要解决的核心问题是：在有限的上下文窗口里，如何最大化保留对”继续完成任务”最重要的信息。 答案是中部压缩：任务的起点（用户目标）和最近的进展（尾部）都要保留，被压缩掉的是中">
+<meta property="og:type" content="website">
+<meta property="og:title" content="六、上下文压缩">
+<meta property="og:url" content="http://yoursite.com/books/hermes/06-%E4%B8%8A%E4%B8%8B%E6%96%87%E5%8E%8B%E7%BC%A9/index.html">
+<meta property="og:site_name" content="悟凌斋">
+<meta property="og:description" content="六、上下文压缩LLM 的上下文窗口是有限的。一个长期运行的 Agent（处理复杂编码任务、多步骤研究）在数百轮对话后，messages 列表的 token 总量会轻松超过 100K，触碰模型的硬限制。 Hermes 的上下文工程要解决的核心问题是：在有限的上下文窗口里，如何最大化保留对”继续完成任务”最重要的信息。 答案是中部压缩：任务的起点（用户目标）和最近的进展（尾部）都要保留，被压缩掉的是中">
+<meta property="article:published_time" content="2026-05-25T06:35:19.641Z">
+<meta property="article:modified_time" content="2026-05-25T06:35:19.641Z">
+<meta property="article:author" content="awabuda">
+<meta property="article:tag" content="博客">
+<meta property="article:tag" content="js">
+<meta property="article:tag" content="前端">
+<meta property="article:tag" content="node">
+<meta property="article:tag" content="vue">
+<meta property="article:tag" content="react">
+<meta property="article:tag" content="koa">
+<meta property="article:tag" content="算法">
+<meta property="article:tag" content="css">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/books/hermes/06-上下文压缩/"/>
+
+
+
+
+
+  <title>六、上下文压缩 | 悟凌斋</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?b376e3ef6e386ad73d4f7661ebfc0d25";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">悟凌斋</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">一行代码翘起整个前端</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+	<h2 class="post-title" itemprop="name headline">六、上下文压缩</h2>
+
+
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+        
+          <h1 id="六、上下文压缩"><a href="#六、上下文压缩" class="headerlink" title="六、上下文压缩"></a>六、上下文压缩</h1><p>LLM 的上下文窗口是有限的。一个长期运行的 Agent（处理复杂编码任务、多步骤研究）在数百轮对话后，messages 列表的 token 总量会轻松超过 100K，触碰模型的硬限制。</p>
+<p>Hermes 的上下文工程要解决的核心问题是：<strong>在有限的上下文窗口里，如何最大化保留对”继续完成任务”最重要的信息</strong>。</p>
+<p>答案是<strong>中部压缩</strong>：任务的起点（用户目标）和最近的进展（尾部）都要保留，被压缩掉的是中间那些已经完成的工具调用历史——它们的具体内容已经不再重要，只需要一份结构化摘要告诉 LLM”我们之前做了什么”。</p>
+<hr>
+<h2 id="上下文压缩全流程"><a href="#上下文压缩全流程" class="headerlink" title="上下文压缩全流程"></a>上下文压缩全流程</h2><pre class="mermaid">
+flowchart TD
+    A["每次工具执行完成后检查"] --> B{token 计数 ≥\ncontext_length × 50%?}
+
+    B -->|否| C["继续循环，不压缩"]
+    B -->|是| D["⟳ compacting context…\n提示用户"]
+
+    D --> E
+
+    subgraph E["ContextCompressor.compress()"]
+        E1["步骤 1：工具输出裁剪\n（无 LLM 调用，低成本预处理）\n对非尾部旧工具结果（>200字符）替换占位符\n效果：通常减少 30~50% token"]
+
+        E1 --> E2
+
+        E2["步骤 2：划定保护区"]
+
+        subgraph E2a["消息列表分区"]
+            H["头部保护（protect_first_n=3）\nsystem 首轮背景"]
+            M["中部（待压缩）\n历史 tool calls\n中间轮对话"]
+            T["尾部保护（~20K tokens）\n最近若干轮对话\n最新进展"]
+        end
+
+        E2 --> E3["步骤 3：用辅助 LLM 生成结构化摘要\n（廉价/快速模型，非主模型）"]
+
+        E3 --> E4["步骤 4：重组 messages\n头部 + 摘要消息 + 尾部\n通常从 200 条 → 20~40 条"]
+
+        E4 --> E5["步骤 5：工具调用完整性修复\n_sanitize_tool_pairs()\n补齐孤儿 tool_call/result 对"]
+    end
+
+    E --> F["步骤 6：重建 system prompt\n压缩 = 新会话\n重载最新 MEMORY.md 快照"]
+
+    F --> G["将压缩后的 messages\n写入新的 SQLite session"]
+</pre>
+
+
+<h2 id="FAQ"><a href="#FAQ" class="headerlink" title="FAQ"></a>FAQ</h2><h3 id="为什么在-50-时触发，而不是-90-？"><a href="#为什么在-50-时触发，而不是-90-？" class="headerlink" title="为什么在 50% 时触发，而不是 90%？"></a>为什么在 50% 时触发，而不是 90%？</h3><p>这是一个<strong>主动容错</strong>设计，而非保守设计：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">情景：模型 context &#x3D; 200K tokens，工具 schema &#x3D; 25K tokens</span><br><span class="line"></span><br><span class="line">若在 90% 触发：</span><br><span class="line">  检查时：~180K tokens（低于阈值）</span><br><span class="line">  工具执行后工具结果追加：+15K tokens</span><br><span class="line">  下一次 API 调用总量：~195K tokens</span><br><span class="line">  → 超过 200K → API 报 context_length_exceeded（4xx）</span><br><span class="line">  → 4xx 被判定为不可重试错误 → 对话直接中断！</span><br><span class="line"></span><br><span class="line">若在 50% 触发（当前设计）：</span><br><span class="line">  检查时：~100K tokens（触发）</span><br><span class="line">  压缩后：~30K tokens</span><br><span class="line">  → 有大量余量继续工具调用</span><br><span class="line">  → 用户看到&quot;⟳ compacting context…&quot;提示，体验流畅</span><br></pre></td></tr></table></figure>
+
+<h3 id="如何计算Token"><a href="#如何计算Token" class="headerlink" title="如何计算Token"></a>如何计算Token</h3><p>Hermes 优先使用 API 响应中的真实 token 计数，而不是估算：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 优先：API 返回的真实值（最准确）</span></span><br><span class="line"><span class="keyword">if</span> _compressor.last_prompt_tokens &gt; <span class="number">0</span>:</span><br><span class="line">    _real_tokens = last_prompt_tokens + last_completion_tokens</span><br><span class="line"></span><br><span class="line"><span class="comment"># 回退：粗略估算（API 断连后 usage 数据为 0 时）</span></span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    _real_tokens = estimate_messages_tokens_rough(messages)</span><br><span class="line">    <span class="comment"># ⚠️ 关键：若 API 断连，usage=0</span></span><br><span class="line">    <span class="comment"># 若用 should_compress(0)，则 0 &lt; threshold → 永远不压缩</span></span><br><span class="line">    <span class="comment"># → 会话无限膨胀，下次调用必然 4xx（已知 bug #2153）</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="结构化摘要：信息的精华提炼"><a href="#结构化摘要：信息的精华提炼" class="headerlink" title="结构化摘要：信息的精华提炼"></a>结构化摘要：信息的精华提炼</h3><p>压缩时调用辅助 LLM 生成的摘要，遵循一个固定模板，保证信息的完整性：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">## Goal</span><br><span class="line">[用户原始目标是什么]</span><br><span class="line"></span><br><span class="line">## Constraints &amp; Preferences</span><br><span class="line">[用户偏好、约束、重要决策]</span><br><span class="line"></span><br><span class="line">## Progress</span><br><span class="line">### Done</span><br><span class="line">[已完成的工作——包含具体文件路径、命令、结果]</span><br><span class="line">### In Progress</span><br><span class="line">[进行中的工作]</span><br><span class="line">### Blocked</span><br><span class="line">[遇到的阻碍]</span><br><span class="line"></span><br><span class="line">## Key Decisions</span><br><span class="line">[重要技术决策和原因]</span><br><span class="line"></span><br><span class="line">## Relevant Files</span><br><span class="line">[读取&#x2F;修改&#x2F;创建的文件，附简短说明]</span><br><span class="line"></span><br><span class="line">## Next Steps</span><br><span class="line">[接下来应该做什么]</span><br><span class="line"></span><br><span class="line">## Critical Context</span><br><span class="line">[不能丢失的具体值：错误信息、配置参数、端口号、API 地址等]</span><br><span class="line"></span><br><span class="line">## Tools &amp; Patterns</span><br><span class="line">[使用了哪些工具、哪些命令是有效的]</span><br></pre></td></tr></table></figure>
+
+<p><strong>为什么用这个模板，而不是让 LLM 自由发挥？</strong></p>
+<p>自由发挥容易产生”文学性摘要”，听起来流畅但缺少具体信息（文件路径、命令、错误信息等）。结构化模板强制 LLM 保留这些”不能丢失的细节”，让下一个 context 里的 Agent 可以真正接续工作，而不是重复劳动。</p>
+<h3 id="迭代式摘要更新"><a href="#迭代式摘要更新" class="headerlink" title="迭代式摘要更新"></a>迭代式摘要更新</h3><pre class="mermaid">
+flowchart LR
+    A["第一次压缩"] --> B["生成摘要 v1\n存储在 _previous_summary"]
+    B --> C["继续对话 50 轮"]
+    C --> D["第二次压缩触发"]
+    D --> E{有 _previous_summary?}
+    E -->|有| F["将 v1 摘要作为输入\n生成迭代更新摘要 v2\n'Based on previous summary...\nnew developments...'"]
+    E -->|无| G["从零生成摘要"]
+    F --> H["存储 v2，丢弃 v1"]
+</pre>
+
+
+<p>这样可以保证多次压缩时，信息不是简单累加，而是滚动更新，保持摘要的精炼。</p>
+<hr>
+<h3 id="压缩完之后可能存在哪些问题"><a href="#压缩完之后可能存在哪些问题" class="headerlink" title="压缩完之后可能存在哪些问题"></a>压缩完之后可能存在哪些问题</h3><p>压缩会切割消息列表，可能在边界处产生”孤儿”——一个 tool_call 的结果消息被切掉了，或者一个 tool_result 对应的调用消息被摘要替换了。OpenAI 和 Anthropic API 都要求 tool_call / tool_result 必须成对出现，否则报 400 错误。</p>
+<pre class="mermaid">
+  flowchart TD
+    A["压缩后的 messages"] --> B["_sanitize_tool_pairs()"]
+
+    B --> C["扫描所有 assistant 消息\n收集 surviving_call_ids 集合"]
+    B --> D["扫描所有 tool 消息\n收集 result_call_ids 集合"]
+
+    C --> E{对比两个集合}
+    D --> E
+
+    E --> F["孤儿 tool_result\n（result 有，call 没有）\n→ 删除此 tool 消息"]
+    E --> G["孤儿 tool_call\n（call 有，result 没有）\n→ 在 call 后面插入存根结果\n'[Result from earlier conversation —\n see context summary above]'"]
+</pre>
+
+
+<h3 id="预检压缩（进入循环前）机制"><a href="#预检压缩（进入循环前）机制" class="headerlink" title="预检压缩（进入循环前）机制"></a>预检压缩（进入循环前）机制</h3><p>除了在循环中的动态检查，Hermes 还在 <code>run_conversation()</code> 入口处做一次预检：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">场景：用户在 CLI 切换到上下文更小的模型，但已有一个大体量会话历史</span><br><span class="line"></span><br><span class="line">预检步骤：</span><br><span class="line">  estimate_request_tokens_rough(messages + system_prompt + tool_schemas)</span><br><span class="line">                                           ↑</span><br><span class="line">                               工具 schema 约占 20-30K token，</span><br><span class="line">                               旧版估算经常漏掉这部分</span><br><span class="line">  </span><br><span class="line">  若超过阈值 → 预检压缩（最多 3 轮，直到降至阈值以下）</span><br><span class="line"></span><br><span class="line">好处：避免&quot;第一次 API 调用就超限报错&quot;</span><br><span class="line">     在有余量时主动压缩，体验更好</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="压缩后-messages-的结构"><a href="#压缩后-messages-的结构" class="headerlink" title="压缩后 messages 的结构"></a>压缩后 messages 的结构</h2><h3 id="压缩前后对比"><a href="#压缩前后对比" class="headerlink" title="压缩前后对比"></a>压缩前后对比</h3><p>压缩前，messages 列表是完整的多轮对话历史：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">压缩前 messages：</span><br><span class="line">  [0] role: system    → &quot;你是 Hermes...&quot;</span><br><span class="line">  [1] role: user      → &quot;帮我重构 file_tools.py&quot;       ← 头部保留（protect_first_n&#x3D;3）</span><br><span class="line">  [2] role: assistant → &quot;好的，先读一下文件...&quot;         ← 头部保留</span><br><span class="line">  ──────── 以下是&quot;中间段&quot;，被压缩掉 ────────</span><br><span class="line">  [3] role: tool      → &quot;文件内容: def read_file...&quot;</span><br><span class="line">  [4] role: assistant → &quot;我看了代码，建议...&quot;</span><br><span class="line">  [5] role: user      → &quot;好，继续&quot;</span><br><span class="line">  [6] role: assistant → tool_calls: [write_file(...)]</span><br><span class="line">  [7] role: tool      → &quot;写入成功&quot;</span><br><span class="line">  ... 十几二十轮 ...</span><br><span class="line">  ──────── 以下是&quot;尾部&quot;，最近约20K token，原样保留 ────────</span><br><span class="line">  [N-2] role: user      → &quot;现在帮我加单测&quot;</span><br><span class="line">  [N-1] role: assistant → &quot;好的，我来写测试...&quot;</span><br><span class="line">  [N]   role: tool      → &quot;test_file_tools.py 写完&quot;</span><br></pre></td></tr></table></figure>
+
+<p>压缩后，中间 N 条消息被<strong>替换为 1 条摘要消息</strong>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">压缩后 messages：</span><br><span class="line">  [0] role: system    → &quot;你是 Hermes...\n\n[Note: Some earlier conversation turns</span><br><span class="line">                         have been compacted...]&quot;    ← 第一次压缩追加了注释</span><br><span class="line">  [1] role: user      → &quot;帮我重构 file_tools.py&quot;    ← 头部，原样保留</span><br><span class="line">  [2] role: assistant → &quot;好的，先读一下文件...&quot;      ← 头部，原样保留</span><br><span class="line"></span><br><span class="line">  [3] role: user      → &quot;[CONTEXT COMPACTION] Earlier turns in this conversation</span><br><span class="line">                         were compacted to save context space. The summary below</span><br><span class="line">                         describes work that was already completed...</span><br><span class="line">                         ## Goal</span><br><span class="line">                         用户想重构 file_tools.py 并提升性能</span><br><span class="line">                         ## Progress</span><br><span class="line">                         ### Done</span><br><span class="line">                         - 读取了 file_tools.py（共 423 行）</span><br><span class="line">                         - 重写了 read_file()，添加了 offset&#x2F;limit 参数</span><br><span class="line">                         ### In Progress</span><br><span class="line">                         - 正在为重构后的代码编写单测</span><br><span class="line">                         ## Relevant Files</span><br><span class="line">                         - tools&#x2F;file_tools.py: 主要重构目标，已完成</span><br><span class="line">                         ...&quot;                       ← 摘要消息（1条替换了N条）</span><br><span class="line"></span><br><span class="line">  [4] role: user      → &quot;现在帮我加单测&quot;            ← 尾部，原样保留</span><br><span class="line">  [5] role: assistant → &quot;好的，我来写测试...&quot;        ← 尾部，原样保留</span><br><span class="line">  [6] role: tool      → &quot;test_file_tools.py 写完&quot;   ← 尾部，原样保留</span><br></pre></td></tr></table></figure>
+
+<h3 id="system-prompt-的特殊处理"><a href="#system-prompt-的特殊处理" class="headerlink" title="system prompt 的特殊处理"></a>system prompt 的特殊处理</h3><p><strong>第一次压缩时</strong>，system prompt 会追加一行注释（仅此一次，后续压缩不再重复追加）：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># agent/context_compressor.py compress()</span></span><br><span class="line"><span class="keyword">if</span> i == <span class="number">0</span> <span class="keyword">and</span> msg.get(<span class="string">"role"</span>) == <span class="string">"system"</span> <span class="keyword">and</span> self.compression_count == <span class="number">0</span>:</span><br><span class="line">    msg[<span class="string">"content"</span>] = (</span><br><span class="line">        (msg.get(<span class="string">"content"</span>) <span class="keyword">or</span> <span class="string">""</span>)</span><br><span class="line">        + <span class="string">"\n\n[Note: Some earlier conversation turns have been compacted into a "</span></span><br><span class="line">          <span class="string">"handoff summary to preserve context space. The current session state "</span></span><br><span class="line">          <span class="string">"may still reflect earlier work, so build on that summary and state "</span></span><br><span class="line">          <span class="string">"rather than re-doing work.]"</span></span><br><span class="line">    )</span><br></pre></td></tr></table></figure>
+
+<h3 id="摘要消息的-role-选择逻辑"><a href="#摘要消息的-role-选择逻辑" class="headerlink" title="摘要消息的 role 选择逻辑"></a>摘要消息的 role 选择逻辑</h3><p>摘要消息插在头部和尾部之间，其 role 会动态选择，避免与相邻消息的 role 冲突（OpenAI 要求 user/assistant 交替出现）：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 优先避免与头部最后一条 role 冲突，其次避免与尾部第一条冲突</span></span><br><span class="line"><span class="keyword">if</span> last_head_role <span class="keyword">in</span> (<span class="string">"assistant"</span>, <span class="string">"tool"</span>):</span><br><span class="line">    summary_role = <span class="string">"user"</span></span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    summary_role = <span class="string">"assistant"</span></span><br><span class="line"><span class="comment"># 如果和尾部仍冲突，且翻转不影响头部，则翻转</span></span><br><span class="line"><span class="keyword">if</span> summary_role == first_tail_role:</span><br><span class="line">    flipped = <span class="string">"assistant"</span> <span class="keyword">if</span> summary_role == <span class="string">"user"</span> <span class="keyword">else</span> <span class="string">"user"</span></span><br><span class="line">    <span class="keyword">if</span> flipped != last_head_role:</span><br><span class="line">        summary_role = flipped</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="comment"># 两侧都冲突 → 将摘要合并到尾部第一条消息的开头</span></span><br><span class="line">        _merge_summary_into_tail = <span class="literal">True</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="如何查看被压缩的内容？"><a href="#如何查看被压缩的内容？" class="headerlink" title="如何查看被压缩的内容？"></a>如何查看被压缩的内容？</h2><p>压缩后原始历史<strong>并没有被删除</strong>，只是不在 active messages 里了。有两种方式找回：</p>
+<h3 id="方式-1：直接问-Agent（LLM-能看到摘要）"><a href="#方式-1：直接问-Agent（LLM-能看到摘要）" class="headerlink" title="方式 1：直接问 Agent（LLM 能看到摘要）"></a>方式 1：直接问 Agent（LLM 能看到摘要）</h3><p>摘要消息本身就在 messages 里，LLM 下一轮即可读到。直接对话：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">用户：&quot;你之前做了什么？&quot;</span><br><span class="line">Agent：从摘要消息里读取，回答&quot;我们已经完成了 X、Y、Z...&quot;</span><br></pre></td></tr></table></figure>
+
+<h3 id="方式-2：查-SQLite-JSON-文件（完整原始记录）"><a href="#方式-2：查-SQLite-JSON-文件（完整原始记录）" class="headerlink" title="方式 2：查 SQLite + JSON 文件（完整原始记录）"></a>方式 2：查 SQLite + JSON 文件（完整原始记录）</h3><p>压缩时，旧 session 在 SQLite 里被打上 <code>&quot;compression&quot;</code> 标记并结束，同时创建新 session id。完整原始对话保存在：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># run_agent.py _compress_context()</span></span><br><span class="line">self._session_db.end_session(self.session_id, <span class="string">"compression"</span>)  <span class="comment"># 旧会话归档，完整历史保留</span></span><br><span class="line">self.session_id = <span class="string">f"<span class="subst">&#123;datetime.now()...&#125;</span>_<span class="subst">&#123;uuid4()...&#125;</span>"</span>         <span class="comment"># 创建新会话 id</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>SQLite</strong>：<code>~/.hermes/sessions.db</code>，可通过 <code>/history</code> 命令检索</li>
+<li><strong>JSON 文件</strong>：<code>~/.hermes/logs/session_&lt;旧session_id&gt;.json</code>，包含压缩前的完整 messages</li>
+</ul>
+<blockquote>
+<h2 id="原始记录永远不会被物理删除——压缩只影响-active-messages（当前-API-调用传入的-messages-列表），不影响持久化存储。-history-命令或直接读-JSON-文件即可回溯所有历史对话。"><a href="#原始记录永远不会被物理删除——压缩只影响-active-messages（当前-API-调用传入的-messages-列表），不影响持久化存储。-history-命令或直接读-JSON-文件即可回溯所有历史对话。" class="headerlink" title="原始记录永远不会被物理删除——压缩只影响 active messages（当前 API 调用传入的 messages 列表），不影响持久化存储。/history 命令或直接读 JSON 文件即可回溯所有历史对话。"></a>原始记录永远不会被物理删除——压缩只影响 active messages（当前 API 调用传入的 messages 列表），不影响持久化存储。<code>/history</code> 命令或直接读 JSON 文件即可回溯所有历史对话。</h2></blockquote>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+    
+    
+
+    
+      
+<div class="post-nav book-nav">
+  
+    <div class="post-nav-prev post-nav-item">
+      <a href="/books/hermes/05-记忆模块三层架构/" rel="prev" title="五、记忆模块三层架构">
+        <span class="post-nav-direction">上一章</span>
+        <span class="post-nav-title">五、记忆模块三层架构</span>
+        <i class="fa fa-chevron-left"></i>
+      </a>
+    </div>
+  
+
+  
+    <div class="post-nav-next post-nav-item">
+      <a href="/books/hermes/07-Prompt拼接机制/" rel="next" title="七、Prompt拼接机制">
+        <span class="post-nav-direction">下一篇</span>
+        <span class="post-nav-title">七、Prompt拼接机制</span>
+        <i class="fa fa-chevron-right"></i>
+      </a>
+    </div>
+  
+</div>
+
+
+    
+
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+     
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.gif"
+                alt="awabuda" />
+            
+              <p class="site-author-name" itemprop="name">awabuda</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/awabuda" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i></a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:awabdua@163.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i></a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#六、上下文压缩"><span class="nav-number">1.</span> <span class="nav-text">六、上下文压缩</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#上下文压缩全流程"><span class="nav-number">1.1.</span> <span class="nav-text">上下文压缩全流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FAQ"><span class="nav-number">1.2.</span> <span class="nav-text">FAQ</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#为什么在-50-时触发，而不是-90-？"><span class="nav-number">1.2.1.</span> <span class="nav-text">为什么在 50% 时触发，而不是 90%？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何计算Token"><span class="nav-number">1.2.2.</span> <span class="nav-text">如何计算Token</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#结构化摘要：信息的精华提炼"><span class="nav-number">1.2.3.</span> <span class="nav-text">结构化摘要：信息的精华提炼</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#迭代式摘要更新"><span class="nav-number">1.2.4.</span> <span class="nav-text">迭代式摘要更新</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#压缩完之后可能存在哪些问题"><span class="nav-number">1.2.5.</span> <span class="nav-text">压缩完之后可能存在哪些问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#预检压缩（进入循环前）机制"><span class="nav-number">1.2.6.</span> <span class="nav-text">预检压缩（进入循环前）机制</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#压缩后-messages-的结构"><span class="nav-number">1.3.</span> <span class="nav-text">压缩后 messages 的结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#压缩前后对比"><span class="nav-number">1.3.1.</span> <span class="nav-text">压缩前后对比</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#system-prompt-的特殊处理"><span class="nav-number">1.3.2.</span> <span class="nav-text">system prompt 的特殊处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#摘要消息的-role-选择逻辑"><span class="nav-number">1.3.3.</span> <span class="nav-text">摘要消息的 role 选择逻辑</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何查看被压缩的内容？"><span class="nav-number">1.4.</span> <span class="nav-text">如何查看被压缩的内容？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#方式-1：直接问-Agent（LLM-能看到摘要）"><span class="nav-number">1.4.1.</span> <span class="nav-text">方式 1：直接问 Agent（LLM 能看到摘要）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#方式-2：查-SQLite-JSON-文件（完整原始记录）"><span class="nav-number">1.4.2.</span> <span class="nav-text">方式 2：查 SQLite + JSON 文件（完整原始记录）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#原始记录永远不会被物理删除——压缩只影响-active-messages（当前-API-调用传入的-messages-列表），不影响持久化存储。-history-命令或直接读-JSON-文件即可回溯所有历史对话。"><span class="nav-number">1.5.</span> <span class="nav-text">原始记录永远不会被物理删除——压缩只影响 active messages（当前 API 调用传入的 messages 列表），不影响持久化存储。&#x2F;history 命令或直接读 JSON 文件即可回溯所有历史对话。</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+      
+        <div>
+  <canvas id="canvasDiyBlock" style="width:60%;">当前浏览器不支持canvas，请更换浏览器后再试</canvas>
+  <script>
+    (function () {
+
+      var digit = [
+        [
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 1, 1, 0, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 0, 1, 1, 0],
+          [0, 0, 1, 1, 1, 0, 0]
+        ], //0
+        [
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 1, 1, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [1, 1, 1, 1, 1, 1, 1]
+        ], //1
+        [
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 1, 1, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 1, 1, 1, 1, 1]
+        ], //2
+        [
+          [1, 1, 1, 1, 1, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //3
+        [
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 1, 0],
+          [0, 0, 1, 1, 1, 1, 0],
+          [0, 1, 1, 0, 1, 1, 0],
+          [1, 1, 0, 0, 1, 1, 0],
+          [1, 1, 1, 1, 1, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 1, 1]
+        ], //4
+        [
+          [1, 1, 1, 1, 1, 1, 1],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 1, 1, 1, 1, 0],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //5
+        [
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 1, 1, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 0, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //6
+        [
+          [1, 1, 1, 1, 1, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0]
+        ], //7
+        [
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //8
+        [
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 1, 1, 0, 0, 0, 0]
+        ], //9
+        [
+          [0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0]
+        ] //:
+      ];
+
+      var canvas = document.getElementById('canvasDiyBlock');
+      if (canvas.getContext) {
+        var cxt = canvas.getContext('2d');
+        //声明canvas的宽高
+        var H = 100,
+          W = 700;
+        canvas.height = H;
+        canvas.width = W;
+        cxt.fillStyle = '#f00';
+        cxt.fillRect(10, 10, 50, 50);
+
+        //存储时间数据
+        var data = [];
+        //存储运动的小球
+        var balls = [];
+        //设置粒子半径
+        var R = canvas.height / 20 - 1;
+        (function () {
+          var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+          //存储时间数字，由十位小时、个位小时、冒号、十位分钟、个位分钟、冒号、十位秒钟、个位秒钟这7个数字组成
+          data.push(temp[1], temp[2], 10, temp[3], temp[4], 10, temp[5], temp[6]);
+        })();
+
+        /*生成点阵数字*/
+        function renderDigit(index, num) {
+          for (var i = 0; i < digit[num].length; i++) {
+            for (var j = 0; j < digit[num][i].length; j++) {
+              if (digit[num][i][j] == 1) {
+                cxt.beginPath();
+                cxt.arc(14 * (R + 2) * index + j * 2 * (R + 1) + (R + 1), i * 2 * (R + 1) + (R + 1), R, 0, 2 * Math
+                  .PI);
+                cxt.closePath();
+                cxt.fill();
+              }
+            }
+          }
+        }
+
+        /*更新时钟*/
+        function updateDigitTime() {
+          var changeNumArray = [];
+          var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+          var NewData = [];
+          NewData.push(temp[1], temp[2], 10, temp[3], temp[4], 10, temp[5], temp[6]);
+          for (var i = data.length - 1; i >= 0; i--) {
+            //时间发生变化
+            if (NewData[i] !== data[i]) {
+              //将变化的数字值和在data数组中的索引存储在changeNumArray数组中
+              changeNumArray.push(i + '_' + (Number(data[i]) + 1) % 10);
+            }
+          }
+          //增加小球
+          for (var i = 0; i < changeNumArray.length; i++) {
+            addBalls.apply(this, changeNumArray[i].split('_'));
+          }
+          data = NewData.concat();
+        }
+
+        /*更新小球状态*/
+        function updateBalls() {
+          for (var i = 0; i < balls.length; i++) {
+            balls[i].stepY += balls[i].disY;
+            balls[i].x += balls[i].stepX;
+            balls[i].y += balls[i].stepY;
+            if (balls[i].x > W + R || balls[i].y > H + R) {
+              balls.splice(i, 1);
+              i--;
+            }
+          }
+        }
+
+        /*增加要运动的小球*/
+        function addBalls(index, num) {
+          var numArray = [1, 2, 3];
+          var colorArray = ["#3BE", "#09C", "#A6C", "#93C", "#9C0", "#690", "#FB3", "#F80", "#F44", "#C00"];
+          for (var i = 0; i < digit[num].length; i++) {
+            for (var j = 0; j < digit[num][i].length; j++) {
+              if (digit[num][i][j] == 1) {
+                var ball = {
+                  x: 14 * (R + 2) * index + j * 2 * (R + 1) + (R + 1),
+                  y: i * 2 * (R + 1) + (R + 1),
+                  stepX: Math.floor(Math.random() * 4 - 2),
+                  stepY: -2 * numArray[Math.floor(Math.random() * numArray.length)],
+                  color: colorArray[Math.floor(Math.random() * colorArray.length)],
+                  disY: 1
+                };
+                balls.push(ball);
+              }
+            }
+          }
+        }
+
+        /*渲染*/
+        function render() {
+          //重置画布宽度，达到清空画布的效果
+          canvas.height = 100;
+          //渲染时钟
+          for (var i = 0; i < data.length; i++) {
+            renderDigit(i, data[i]);
+          }
+          //渲染小球
+          for (var i = 0; i < balls.length; i++) {
+            cxt.beginPath();
+            cxt.arc(balls[i].x, balls[i].y, R, 0, 2 * Math.PI);
+            cxt.fillStyle = balls[i].color;
+            cxt.closePath();
+            cxt.fill();
+          }
+        }
+
+        clearInterval(oTimer);
+        var oTimer = setInterval(function () {
+          //更新时钟
+          updateDigitTime();
+          //更新小球状态
+          updateBalls();
+          //渲染
+          render();
+        }, 50);
+      }
+    })();
+
+  </script>
+
+
+</div>
+
+      
+
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">awabuda</span>
+
+  
+</div>
+
+
+
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+  
+  
+
+
+
+  
+  
+
+
+
+  
+  
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_sphere.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item=>{
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: true,
+        notify: false,
+        appId: 'DBST5TYeCj1kQTDDNozqqYJ7-gzGzoHsz',
+        appKey: '3U5lXDpHXEHKjMOrQtSQSWk6',
+        placeholder: '请留下您宝贵的意见',
+        avatar:'wavatar',
+        guest_info:guest,
+        pageSize:'10' || 10,
+    });
+  </script>
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("DBST5TYeCj1kQTDDNozqqYJ7-gzGzoHsz", "3U5lXDpHXEHKjMOrQtSQSWk6");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof mermaid === 'undefined') return;
+      mermaid.initialize({
+        theme: 'default',
+        startOnLoad: true,
+        securityLevel: 'loose',
+        flowchart: { useMaxWidth: true, htmlLabels: true },
+        sequence: { useMaxWidth: true, htmlLabels: true }
+      });
+      mermaid.run({ querySelector: '.mermaid' });
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+  <script>
+  !function (e, t, a) { function n() { c(".heart{width: 10px;height: 10px;position: fixed;background: #f00;transform: rotate(45deg);-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);}.heart:after,.heart:before{content: '';width: inherit;height: inherit;background: inherit;border-radius: 50%;-webkit-border-radius: 50%;-moz-border-radius: 50%;position: fixed;}.heart:after{top: -5px;}.heart:before{left: -5px;}"), o(), r() } function r() { for (var e = 0; e < d.length; e++)d[e].alpha <= 0 ? (t.body.removeChild(d[e].el), d.splice(e, 1)) : (d[e].y-- , d[e].scale += .004, d[e].alpha -= .013, d[e].el.style.cssText = "left:" + d[e].x + "px;top:" + d[e].y + "px;opacity:" + d[e].alpha + ";transform:scale(" + d[e].scale + "," + d[e].scale + ") rotate(45deg);background:" + d[e].color + ";z-index:99999"); requestAnimationFrame(r) } function o() { var t = "function" == typeof e.onclick && e.onclick; e.onclick = function (e) { t && t(), i(e) } } function i(e) { var a = t.createElement("div"); a.className = "heart", d.push({ el: a, x: e.clientX - 5, y: e.clientY - 5, scale: 1, alpha: 1, color: s() }), t.body.appendChild(a) } function c(e) { var a = t.createElement("style"); a.type = "text/css"; try { a.appendChild(t.createTextNode(e)) } catch (t) { a.styleSheet.cssText = e } t.getElementsByTagName("head")[0].appendChild(a) } function s() { return "rgb(" + ~~(255 * Math.random()) + "," + ~~(255 * Math.random()) + "," + ~~(255 * Math.random()) + ")" } var d = []; e.requestAnimationFrame = function () { return e.requestAnimationFrame || e.webkitRequestAnimationFrame || e.mozRequestAnimationFrame || e.oRequestAnimationFrame || e.msRequestAnimationFrame || function (e) { setTimeout(e, 1e3 / 60) } }(), n() }(window, document);
+</script>
+</body>
+</html>

@@ -1,0 +1,1619 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+  
+
+<link href="//cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="js,node,小程序,ts" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="八、子 Agent 委托（delegate_task） 结论先行：delegate_task 是 Hermes 的”任务外包”机制。父 Agent 遇到复杂子任务时，通过 delegate_task 生成一个独立的子 AIAgent，让它单独完成一段 ReAct 循环，最终只把摘要结果汇报给父 Agent。父 Agent 的上下文窗口只看到”委托了什么 + 得到什么结果”，子 Agent 产生的数">
+<meta property="og:type" content="website">
+<meta property="og:title" content="八、子Agent委托">
+<meta property="og:url" content="http://yoursite.com/books/hermes/08-%E5%AD%90Agent%E5%A7%94%E6%89%98/index.html">
+<meta property="og:site_name" content="悟凌斋">
+<meta property="og:description" content="八、子 Agent 委托（delegate_task） 结论先行：delegate_task 是 Hermes 的”任务外包”机制。父 Agent 遇到复杂子任务时，通过 delegate_task 生成一个独立的子 AIAgent，让它单独完成一段 ReAct 循环，最终只把摘要结果汇报给父 Agent。父 Agent 的上下文窗口只看到”委托了什么 + 得到什么结果”，子 Agent 产生的数">
+<meta property="article:published_time" content="2026-05-25T06:35:19.642Z">
+<meta property="article:modified_time" content="2026-05-25T06:35:19.642Z">
+<meta property="article:author" content="awabuda">
+<meta property="article:tag" content="博客">
+<meta property="article:tag" content="js">
+<meta property="article:tag" content="前端">
+<meta property="article:tag" content="node">
+<meta property="article:tag" content="vue">
+<meta property="article:tag" content="react">
+<meta property="article:tag" content="koa">
+<meta property="article:tag" content="算法">
+<meta property="article:tag" content="css">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/books/hermes/08-子Agent委托/"/>
+
+
+
+
+
+  <title>八、子Agent委托 | 悟凌斋</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?b376e3ef6e386ad73d4f7661ebfc0d25";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">悟凌斋</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">一行代码翘起整个前端</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+	<h2 class="post-title" itemprop="name headline">八、子Agent委托</h2>
+
+
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+        
+          <h1 id="八、子-Agent-委托（delegate-task）"><a href="#八、子-Agent-委托（delegate-task）" class="headerlink" title="八、子 Agent 委托（delegate_task）"></a>八、子 Agent 委托（delegate_task）</h1><blockquote>
+<p><strong>结论先行</strong>：<code>delegate_task</code> 是 Hermes 的”任务外包”机制。父 Agent 遇到复杂子任务时，通过 <code>delegate_task</code> 生成一个独立的子 AIAgent，让它单独完成一段 ReAct 循环，最终只把摘要结果汇报给父 Agent。父 Agent 的上下文窗口只看到”委托了什么 + 得到什么结果”，子 Agent 产生的数十次工具调用全部被隔离，不污染父 Agent 的 context。</p>
+</blockquote>
+<hr>
+<h2 id="8-1-为什么需要子-Agent-委托？"><a href="#8-1-为什么需要子-Agent-委托？" class="headerlink" title="8.1 为什么需要子 Agent 委托？"></a>8.1 为什么需要子 Agent 委托？</h2><p>在单 Agent 模式下，每次工具调用的 input/output 都追加到 conversation history，复杂任务（如”分析整个代码库并生成报告”）会迅速撑爆上下文窗口，且中间大量工具调用结果干扰 LLM 推理。</p>
+<p>子 Agent 委托的核心价值：</p>
+<ul>
+<li><strong>上下文隔离</strong>：子 Agent 所有中间推理 + 工具调用结果不进入父 Agent context</li>
+<li><strong>并行加速</strong>：最多 3 个子任务并行执行（<code>MAX_CONCURRENT_CHILDREN=3</code>）</li>
+<li><strong>灵活路由</strong>：子 Agent 可使用不同 model/provider，适合”廉价模型做细活”</li>
+</ul>
+<hr>
+<h2 id="8-2-完整委托流程"><a href="#8-2-完整委托流程" class="headerlink" title="8.2 完整委托流程"></a>8.2 完整委托流程</h2><pre class="mermaid">
+sequenceDiagram
+    participant P as 父 Agent ReAct 循环
+    participant D as delegate_task()
+    participant C as 子 AIAgent
+    participant T as 工具层
+
+    P->>D: delegate_task(goal="分析性能瓶颈", context="...")
+    D->>D: ① 检查 depth < MAX_DEPTH(2)
+    D->>D: ② 保存父工具名快照（进程全局变量）
+    D->>C: ③ 主线程构建子 AIAgent
+    note over C: skip_memory=True<br/>skip_context_files=True<br/>blocked_tools 已剥除
+    D->>D: ④ 恢复父工具名快照
+    D->>C: ⑤ child.run_conversation(goal)
+    loop 子 Agent ReAct 循环
+        C->>T: 调用工具（search_files/read_file/terminal...）
+        T-->>C: 工具结果（不进父 context）
+        C->>P: 进度回调（工具名/推理片段）
+    end
+    C-->>D: final_response（摘要）
+    D-->>P: JSON {results: [{status, summary, tool_trace...}]}
+    note over P: 父 context 只追加这一条 JSON
+</pre>
+
+
+<hr>
+<h2 id="8-3-代码：子-Agent-构建关键逻辑"><a href="#8-3-代码：子-Agent-构建关键逻辑" class="headerlink" title="8.3 代码：子 Agent 构建关键逻辑"></a>8.3 代码：子 Agent 构建关键逻辑</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tools/delegate_tool.py</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 禁止子 Agent 使用的工具集</span></span><br><span class="line">DELEGATE_BLOCKED_TOOLS = frozenset([</span><br><span class="line">    <span class="string">"delegate_task"</span>,   <span class="comment"># 禁止递归委托（防无限嵌套）</span></span><br><span class="line">    <span class="string">"clarify"</span>,         <span class="comment"># 禁止向用户提问（子 Agent 无用户交互）</span></span><br><span class="line">    <span class="string">"memory"</span>,          <span class="comment"># 禁止写 MEMORY.md（并发污染风险）</span></span><br><span class="line">    <span class="string">"send_message"</span>,    <span class="comment"># 禁止跨平台消息副作用</span></span><br><span class="line">    <span class="string">"execute_code"</span>,    <span class="comment"># 子 Agent 应逐步推理，不写脚本</span></span><br><span class="line">])</span><br><span class="line"></span><br><span class="line">MAX_DEPTH = <span class="number">2</span>          <span class="comment"># 父(0) → 子(1) → 孙(拒绝)</span></span><br><span class="line">MAX_CONCURRENT_CHILDREN = <span class="number">3</span>  <span class="comment"># 批量并行上限</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">_build_child_agent</span><span class="params">(task_index, goal, context, toolsets, ...)</span>:</span></span><br><span class="line">    <span class="comment"># 工具集继承：只能用父 toolsets 的交集，再剥除 blocked</span></span><br><span class="line">    child_toolsets = _strip_blocked_tools(</span><br><span class="line">        [t <span class="keyword">for</span> t <span class="keyword">in</span> toolsets <span class="keyword">if</span> t <span class="keyword">in</span> parent_toolsets]</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    child = AIAgent(</span><br><span class="line">        model=effective_model,</span><br><span class="line">        enabled_toolsets=child_toolsets,</span><br><span class="line">        max_iterations=max_iterations,   <span class="comment"># 独立迭代预算（默认 50）</span></span><br><span class="line">        ephemeral_system_prompt=child_prompt,</span><br><span class="line">        skip_memory=<span class="literal">True</span>,                <span class="comment"># 不加载父 MEMORY.md</span></span><br><span class="line">        skip_context_files=<span class="literal">True</span>,         <span class="comment"># 不加载 AGENTS.md 等</span></span><br><span class="line">        quiet_mode=<span class="literal">True</span>,</span><br><span class="line">    )</span><br><span class="line">    child._delegate_depth = parent._delegate_depth + <span class="number">1</span></span><br><span class="line">    <span class="comment"># 共享父 CredentialPool，子任务限速时能自动轮换 API Key</span></span><br><span class="line">    child._credential_pool = parent._credential_pool</span><br><span class="line">    <span class="keyword">return</span> child</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="8-4-进度可视化：两种展示路径"><a href="#8-4-进度可视化：两种展示路径" class="headerlink" title="8.4 进度可视化：两种展示路径"></a>8.4 进度可视化：两种展示路径</h2><p>子 Agent 执行时，工具调用进度通过 progress callback 实时回报：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">CLI 模式（树形，打印在委托 spinner 上方）：</span><br><span class="line">  🔀 Delegating: analyze performance bottlenecks...</span><br><span class="line">    [1] ├─ 🔍 search_files  &quot;def .*query&quot;</span><br><span class="line">    [1] ├─ 📖 read_file  &quot;app&#x2F;models.py&quot;</span><br><span class="line">    [1] ├─ 💭 &quot;Found N+1 query in UserModel.get_friends()&quot;</span><br><span class="line">    [1] ├─ 🖥  terminal  &quot;python -m pytest tests&#x2F; -q&quot;</span><br><span class="line">  ✓ [1&#x2F;1] analyze performance bottlenecks  (12.3s)</span><br><span class="line"></span><br><span class="line">Gateway 模式（每 5 个工具调用批量推送，减少消息数量）：</span><br><span class="line">  🔀 [1] search_files, read_file, terminal, patch, read_file</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="8-5-两种执行模式对比"><a href="#8-5-两种执行模式对比" class="headerlink" title="8.5 两种执行模式对比"></a>8.5 两种执行模式对比</h2><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>单任务模式</th>
+<th>批量并行模式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>调用方式</td>
+<td><code>delegate_task(goal=&quot;...&quot;)</code></td>
+<td><code>delegate_task(tasks=[...])</code></td>
+</tr>
+<tr>
+<td>执行方式</td>
+<td>主线程直接运行</td>
+<td><code>ThreadPoolExecutor</code> 并发</td>
+</tr>
+<tr>
+<td>最大并行数</td>
+<td>1</td>
+<td>3</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>单个复杂子任务</td>
+<td>多个相互独立的子任务</td>
+</tr>
+<tr>
+<td>父等待策略</td>
+<td>阻塞等待完成</td>
+<td><code>as_completed</code> 逐个收割</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="8-6-委托深度限制"><a href="#8-6-委托深度限制" class="headerlink" title="8.6 委托深度限制"></a>8.6 委托深度限制</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">父 Agent (depth&#x3D;0)</span><br><span class="line">    └── 子 Agent (depth&#x3D;1)   ← 允许，depth &lt; MAX_DEPTH</span><br><span class="line">             └── 孙 Agent    ← 被拒绝！</span><br><span class="line">                 返回: &quot;Delegation depth limit reached (2).</span><br><span class="line">                        Subagents cannot spawn further subagents.&quot;</span><br></pre></td></tr></table></figure>
+
+<p>这是工程安全阀：防止 LLM 产生无限递归委托，避免 API 费用失控。</p>
+<hr>
+<h2 id="8-7-返回结构（父-Agent-看到的）"><a href="#8-7-返回结构（父-Agent-看到的）" class="headerlink" title="8.7 返回结构（父 Agent 看到的）"></a>8.7 返回结构（父 Agent 看到的）</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 父 context 追加的最终 JSON</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="string">"results"</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="string">"task_index"</span>: <span class="number">0</span>,</span><br><span class="line">            <span class="string">"status"</span>: <span class="string">"completed"</span>,      <span class="comment"># completed / failed / interrupted</span></span><br><span class="line">            <span class="string">"summary"</span>: <span class="string">"分析完成：发现 3 处 N+1 查询..."</span>,  <span class="comment"># 唯一进父 context 的内容</span></span><br><span class="line">            <span class="string">"api_calls"</span>: <span class="number">8</span>,             <span class="comment"># 子 Agent LLM 调用次数</span></span><br><span class="line">            <span class="string">"duration_seconds"</span>: <span class="number">12.3</span>,</span><br><span class="line">            <span class="string">"exit_reason"</span>: <span class="string">"completed"</span>,  <span class="comment"># completed / max_iterations / interrupted</span></span><br><span class="line">            <span class="string">"tokens"</span>: &#123;<span class="string">"input"</span>: <span class="number">4200</span>, <span class="string">"output"</span>: <span class="number">850</span>&#125;,</span><br><span class="line">            <span class="string">"tool_trace"</span>: [             <span class="comment"># 工具调用摘要（不含结果内容，仅元数据）</span></span><br><span class="line">                &#123;<span class="string">"tool"</span>: <span class="string">"search_files"</span>, <span class="string">"args_bytes"</span>: <span class="number">45</span>, <span class="string">"result_bytes"</span>: <span class="number">2100</span>, <span class="string">"status"</span>: <span class="string">"ok"</span>&#125;,</span><br><span class="line">                &#123;<span class="string">"tool"</span>: <span class="string">"read_file"</span>,    <span class="string">"args_bytes"</span>: <span class="number">30</span>, <span class="string">"result_bytes"</span>: <span class="number">5200</span>, <span class="string">"status"</span>: <span class="string">"ok"</span>&#125;,</span><br><span class="line">            ]</span><br><span class="line">        &#125;</span><br><span class="line">    ],</span><br><span class="line">    <span class="string">"total_duration_seconds"</span>: <span class="number">12.5</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="8-8-FAQ：子-Agent-高频问题"><a href="#8-8-FAQ：子-Agent-高频问题" class="headerlink" title="8.8 FAQ：子 Agent 高频问题"></a>8.8 FAQ：子 Agent 高频问题</h2><h3 id="Q1：模型认为有-5-个任务，但-maxItems-3-限制了每次只能派-3-个，剩余-2-个如何处理？"><a href="#Q1：模型认为有-5-个任务，但-maxItems-3-限制了每次只能派-3-个，剩余-2-个如何处理？" class="headerlink" title="Q1：模型认为有 5 个任务，但 maxItems: 3 限制了每次只能派 3 个，剩余 2 个如何处理？"></a>Q1：模型认为有 5 个任务，但 <code>maxItems: 3</code> 限制了每次只能派 3 个，剩余 2 个如何处理？</h3><p><strong>答</strong>：不会自动续发，代码里没有分批机制。全流程分三层：</p>
+<p><strong>第一层（Schema 约束）</strong>：<code>tasks</code> 数组的 <code>maxItems: 3</code> 告知模型”每次最多填 3 个”，模型遵守 Schema 生成工具调用时自行限制。</p>
+<p><strong>第二层（代码兜底截断）</strong>：即使模型违规传入更多，代码也强制截断：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tools/delegate_tool.py L610</span></span><br><span class="line">task_list = tasks[:MAX_CONCURRENT_CHILDREN]   <span class="comment"># [:3]，第4、5个直接丢弃</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>第三层（模型自主分批）</strong>：模型在 ReAct 循环中，看到第1批 3 个完成的 Observation 后，自主决定是否再次调用 <code>delegate_task</code> 提交剩余任务。这是多轮工具调用，代码层<strong>没有</strong>自动续发逻辑。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">第1轮：delegate_task(tasks&#x3D;[任务1, 任务2, 任务3])  → 父 Agent 阻塞</span><br><span class="line">                                                     ↓ 3个子 Agent 并行完成</span><br><span class="line">                                              Observation 进入父 context</span><br><span class="line">第2轮：模型自主决定 → delegate_task(tasks&#x3D;[任务4, 任务5])</span><br></pre></td></tr></table></figure>
+
+<h3 id="Q2：同一个-tasks-数组里的多个任务，代码如何执行？是并行还是串行？"><a href="#Q2：同一个-tasks-数组里的多个任务，代码如何执行？是并行还是串行？" class="headerlink" title="Q2：同一个 tasks 数组里的多个任务，代码如何执行？是并行还是串行？"></a>Q2：同一个 <code>tasks</code> 数组里的多个任务，代码如何执行？是并行还是串行？</h3><p><strong>答</strong>：只要进入同一个 <code>tasks</code> 数组，<strong>无条件并行执行</strong>，代码里没有任何依赖检测逻辑。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tools/delegate_tool.py L670</span></span><br><span class="line"><span class="keyword">with</span> ThreadPoolExecutor(max_workers=MAX_CONCURRENT_CHILDREN) <span class="keyword">as</span> executor:</span><br><span class="line">    futures = &#123;&#125;</span><br><span class="line">    <span class="keyword">for</span> i, t, child <span class="keyword">in</span> children:</span><br><span class="line">        future = executor.submit(_run_single_child, ...)  <span class="comment"># 全部一次性投入线程池</span></span><br><span class="line">        futures[future] = i</span><br><span class="line">    <span class="keyword">for</span> future <span class="keyword">in</span> as_completed(futures):   <span class="comment"># as_completed：谁先完成先收割谁</span></span><br><span class="line">        results.append(future.result())</span><br></pre></td></tr></table></figure>
+
+<p><strong>串行是如何实现的</strong>？模型通过多轮调用天然实现：前一次 <code>delegate_task</code> 的 Observation 没回来之前，模型无法发起下一轮，所以有依赖的任务只要分开两次调用就是串行。</p>
+<p><strong>判断逻辑完全在模型侧</strong>：Schema 描述中写了 <code>&quot;Parallel independent workstreams&quot;</code>，引导模型只把相互独立的任务放进同一个 <code>tasks</code> 数组；有依赖的任务则分开多轮调用。</p>
+<h3 id="Q3：父-Agent-→-子-Agent-→-孙-Agent-三层结构如何触发和被阻断？"><a href="#Q3：父-Agent-→-子-Agent-→-孙-Agent-三层结构如何触发和被阻断？" class="headerlink" title="Q3：父 Agent → 子 Agent → 孙 Agent 三层结构如何触发和被阻断？"></a>Q3：父 Agent → 子 Agent → 孙 Agent 三层结构如何触发和被阻断？</h3><p><strong>答</strong>：深度通过 <code>_delegate_depth</code> 属性在实例间传递，双重防线确保孙级无法再委派：</p>
+<p><strong>深度传递</strong>（<code>_build_child_agent</code> 中）：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tools/delegate_tool.py L370</span></span><br><span class="line">child._delegate_depth = getattr(parent_agent, <span class="string">'_delegate_depth'</span>, <span class="number">0</span>) + <span class="number">1</span></span><br><span class="line"><span class="comment"># 父 Agent 无此属性 → 默认 0；子 Agent 得到 1；孙 Agent 得到 2</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>入口拒绝</strong>（<code>delegate_task</code> 函数起始处）：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tools/delegate_tool.py L584</span></span><br><span class="line">depth = getattr(parent_agent, <span class="string">'_delegate_depth'</span>, <span class="number">0</span>)</span><br><span class="line"><span class="keyword">if</span> depth &gt;= MAX_DEPTH:   <span class="comment"># MAX_DEPTH = 2</span></span><br><span class="line">    <span class="keyword">return</span> json.dumps(&#123;<span class="string">"error"</span>: <span class="string">"Delegation depth limit reached (2). Subagents cannot spawn further subagents."</span>&#125;)</span><br></pre></td></tr></table></figure>
+
+<p><strong>工具集剥离（第二道防线）</strong>：子 Agent 在构建时，<code>delegation</code> toolset 被从工具列表中移除，孙 Agent 根本看不到 <code>delegate_task</code> 工具：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tools/delegate_tool.py L134</span></span><br><span class="line">blocked_toolset_names = &#123;<span class="string">"delegation"</span>, <span class="string">"clarify"</span>, <span class="string">"memory"</span>, <span class="string">"code_execution"</span>&#125;</span><br><span class="line"><span class="keyword">return</span> [t <span class="keyword">for</span> t <span class="keyword">in</span> toolsets <span class="keyword">if</span> t <span class="keyword">not</span> <span class="keyword">in</span> blocked_toolset_names]</span><br></pre></td></tr></table></figure>
+
+<p>深度层级总结：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">父 Agent  _delegate_depth&#x3D;0  可委派</span><br><span class="line">  └─ 子 Agent  _delegate_depth&#x3D;1  可委派（depth 1 &lt; MAX_DEPTH 2）</span><br><span class="line">       └─ 孙 Agent  _delegate_depth&#x3D;2  被拒绝（depth 2 &gt;&#x3D; MAX_DEPTH 2）</span><br><span class="line">                                         + 工具列表里根本没有 delegate_task</span><br></pre></td></tr></table></figure>
+
+<h3 id="Q4：maxItems-3-与代码-3-截断有什么区别？各自作用是什么？"><a href="#Q4：maxItems-3-与代码-3-截断有什么区别？各自作用是什么？" class="headerlink" title="Q4：maxItems: 3 与代码 [:3] 截断有什么区别？各自作用是什么？"></a>Q4：<code>maxItems: 3</code> 与代码 <code>[:3]</code> 截断有什么区别？各自作用是什么？</h3><p><strong>答</strong>：两者是不同层次的防护，缺一不可：</p>
+<table>
+<thead>
+<tr>
+<th>对比项</th>
+<th><code>maxItems: 3</code>（Schema）</th>
+<th><code>tasks[:3]</code>（代码）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>作用对象</td>
+<td>模型生成工具调用参数时</td>
+<td>运行时接收到的参数</td>
+</tr>
+<tr>
+<td>触发时机</td>
+<td>模型写 JSON 参数阶段</td>
+<td><code>delegate_task()</code> 函数执行阶段</td>
+</tr>
+<tr>
+<td>超出后行为</td>
+<td>模型遵守规范，不会超过 3 个</td>
+<td>第 4 个及以后静默丢弃</td>
+</tr>
+<tr>
+<td>目的</td>
+<td>引导模型行为</td>
+<td>工程兜底，防御模型越界</td>
+</tr>
+</tbody></table>
+<p>两者配合形成”引导 + 兜底”双保险，即使未来换模型或模型偶发违规，代码层也能保证最多 3 个任务并发。</p>
+<h3 id="Q5：子-Agent-的工具集是如何从父-Agent-继承的？会不会拿到父-Agent-没有的工具？"><a href="#Q5：子-Agent-的工具集是如何从父-Agent-继承的？会不会拿到父-Agent-没有的工具？" class="headerlink" title="Q5：子 Agent 的工具集是如何从父 Agent 继承的？会不会拿到父 Agent 没有的工具？"></a>Q5：子 Agent 的工具集是如何从父 Agent 继承的？会不会拿到父 Agent 没有的工具？</h3><p><strong>答</strong>：子 Agent 工具集只会是父 Agent 工具集的<strong>子集</strong>，绝不会扩权：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tools/delegate_tool.py L291</span></span><br><span class="line"><span class="keyword">if</span> toolsets:</span><br><span class="line">    <span class="comment"># 显式指定：取与父 toolsets 的交集，防止子 Agent 越权获取父没有的工具</span></span><br><span class="line">    child_toolsets = _strip_blocked_tools([t <span class="keyword">for</span> t <span class="keyword">in</span> toolsets <span class="keyword">if</span> t <span class="keyword">in</span> parent_toolsets])</span><br><span class="line"><span class="keyword">elif</span> parent_agent <span class="keyword">and</span> parent_enabled <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">    <span class="comment"># 未指定：直接继承父的 enabled_toolsets</span></span><br><span class="line">    child_toolsets = _strip_blocked_tools(parent_enabled)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    child_toolsets = _strip_blocked_tools(DEFAULT_TOOLSETS)  <span class="comment"># ["terminal","file","web"]</span></span><br></pre></td></tr></table></figure>
+
+<p>继承公式：<code>父 toolsets ∩ 显式指定 toolsets → 再剥除 blocked → 子 toolsets</code></p>
+<p>被强制剥除的工具集（无论如何都不会给子 Agent）：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">DELEGATE_BLOCKED_TOOLS = frozenset([</span><br><span class="line">    <span class="string">"delegate_task"</span>,  <span class="comment"># 防递归委派</span></span><br><span class="line">    <span class="string">"clarify"</span>,        <span class="comment"># 无用户交互</span></span><br><span class="line">    <span class="string">"memory"</span>,         <span class="comment"># 防并发写 MEMORY.md</span></span><br><span class="line">    <span class="string">"send_message"</span>,   <span class="comment"># 防跨平台副作用</span></span><br><span class="line">    <span class="string">"execute_code"</span>,   <span class="comment"># 子 Agent 应逐步推理</span></span><br><span class="line">])</span><br></pre></td></tr></table></figure>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+    
+    
+
+    
+      
+<div class="post-nav book-nav">
+  
+    <div class="post-nav-prev post-nav-item">
+      <a href="/books/hermes/07-Prompt拼接机制/" rel="prev" title="七、Prompt拼接机制">
+        <span class="post-nav-direction">上一章</span>
+        <span class="post-nav-title">七、Prompt拼接机制</span>
+        <i class="fa fa-chevron-left"></i>
+      </a>
+    </div>
+  
+
+  
+    <div class="post-nav-next post-nav-item">
+      <a href="/books/hermes/09-MCP客户端集成/" rel="next" title="九、MCP客户端集成">
+        <span class="post-nav-direction">下一篇</span>
+        <span class="post-nav-title">九、MCP客户端集成</span>
+        <i class="fa fa-chevron-right"></i>
+      </a>
+    </div>
+  
+</div>
+
+
+    
+
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+     
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.gif"
+                alt="awabuda" />
+            
+              <p class="site-author-name" itemprop="name">awabuda</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/awabuda" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i></a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:awabdua@163.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i></a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#八、子-Agent-委托（delegate-task）"><span class="nav-number">1.</span> <span class="nav-text">八、子 Agent 委托（delegate_task）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#8-1-为什么需要子-Agent-委托？"><span class="nav-number">1.1.</span> <span class="nav-text">8.1 为什么需要子 Agent 委托？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-2-完整委托流程"><span class="nav-number">1.2.</span> <span class="nav-text">8.2 完整委托流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-3-代码：子-Agent-构建关键逻辑"><span class="nav-number">1.3.</span> <span class="nav-text">8.3 代码：子 Agent 构建关键逻辑</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-4-进度可视化：两种展示路径"><span class="nav-number">1.4.</span> <span class="nav-text">8.4 进度可视化：两种展示路径</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-5-两种执行模式对比"><span class="nav-number">1.5.</span> <span class="nav-text">8.5 两种执行模式对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-6-委托深度限制"><span class="nav-number">1.6.</span> <span class="nav-text">8.6 委托深度限制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-7-返回结构（父-Agent-看到的）"><span class="nav-number">1.7.</span> <span class="nav-text">8.7 返回结构（父 Agent 看到的）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-8-FAQ：子-Agent-高频问题"><span class="nav-number">1.8.</span> <span class="nav-text">8.8 FAQ：子 Agent 高频问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Q1：模型认为有-5-个任务，但-maxItems-3-限制了每次只能派-3-个，剩余-2-个如何处理？"><span class="nav-number">1.8.1.</span> <span class="nav-text">Q1：模型认为有 5 个任务，但 maxItems: 3 限制了每次只能派 3 个，剩余 2 个如何处理？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Q2：同一个-tasks-数组里的多个任务，代码如何执行？是并行还是串行？"><span class="nav-number">1.8.2.</span> <span class="nav-text">Q2：同一个 tasks 数组里的多个任务，代码如何执行？是并行还是串行？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Q3：父-Agent-→-子-Agent-→-孙-Agent-三层结构如何触发和被阻断？"><span class="nav-number">1.8.3.</span> <span class="nav-text">Q3：父 Agent → 子 Agent → 孙 Agent 三层结构如何触发和被阻断？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Q4：maxItems-3-与代码-3-截断有什么区别？各自作用是什么？"><span class="nav-number">1.8.4.</span> <span class="nav-text">Q4：maxItems: 3 与代码 [:3] 截断有什么区别？各自作用是什么？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Q5：子-Agent-的工具集是如何从父-Agent-继承的？会不会拿到父-Agent-没有的工具？"><span class="nav-number">1.8.5.</span> <span class="nav-text">Q5：子 Agent 的工具集是如何从父 Agent 继承的？会不会拿到父 Agent 没有的工具？</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+      
+        <div>
+  <canvas id="canvasDiyBlock" style="width:60%;">当前浏览器不支持canvas，请更换浏览器后再试</canvas>
+  <script>
+    (function () {
+
+      var digit = [
+        [
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 1, 1, 0, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 0, 1, 1, 0],
+          [0, 0, 1, 1, 1, 0, 0]
+        ], //0
+        [
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 1, 1, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [1, 1, 1, 1, 1, 1, 1]
+        ], //1
+        [
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 1, 1, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 1, 1, 1, 1, 1]
+        ], //2
+        [
+          [1, 1, 1, 1, 1, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //3
+        [
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 1, 0],
+          [0, 0, 1, 1, 1, 1, 0],
+          [0, 1, 1, 0, 1, 1, 0],
+          [1, 1, 0, 0, 1, 1, 0],
+          [1, 1, 1, 1, 1, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 1, 1]
+        ], //4
+        [
+          [1, 1, 1, 1, 1, 1, 1],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 1, 1, 1, 1, 0],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //5
+        [
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 1, 1, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 0, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //6
+        [
+          [1, 1, 1, 1, 1, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0]
+        ], //7
+        [
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //8
+        [
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 1, 1, 0, 0, 0, 0]
+        ], //9
+        [
+          [0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0]
+        ] //:
+      ];
+
+      var canvas = document.getElementById('canvasDiyBlock');
+      if (canvas.getContext) {
+        var cxt = canvas.getContext('2d');
+        //声明canvas的宽高
+        var H = 100,
+          W = 700;
+        canvas.height = H;
+        canvas.width = W;
+        cxt.fillStyle = '#f00';
+        cxt.fillRect(10, 10, 50, 50);
+
+        //存储时间数据
+        var data = [];
+        //存储运动的小球
+        var balls = [];
+        //设置粒子半径
+        var R = canvas.height / 20 - 1;
+        (function () {
+          var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+          //存储时间数字，由十位小时、个位小时、冒号、十位分钟、个位分钟、冒号、十位秒钟、个位秒钟这7个数字组成
+          data.push(temp[1], temp[2], 10, temp[3], temp[4], 10, temp[5], temp[6]);
+        })();
+
+        /*生成点阵数字*/
+        function renderDigit(index, num) {
+          for (var i = 0; i < digit[num].length; i++) {
+            for (var j = 0; j < digit[num][i].length; j++) {
+              if (digit[num][i][j] == 1) {
+                cxt.beginPath();
+                cxt.arc(14 * (R + 2) * index + j * 2 * (R + 1) + (R + 1), i * 2 * (R + 1) + (R + 1), R, 0, 2 * Math
+                  .PI);
+                cxt.closePath();
+                cxt.fill();
+              }
+            }
+          }
+        }
+
+        /*更新时钟*/
+        function updateDigitTime() {
+          var changeNumArray = [];
+          var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+          var NewData = [];
+          NewData.push(temp[1], temp[2], 10, temp[3], temp[4], 10, temp[5], temp[6]);
+          for (var i = data.length - 1; i >= 0; i--) {
+            //时间发生变化
+            if (NewData[i] !== data[i]) {
+              //将变化的数字值和在data数组中的索引存储在changeNumArray数组中
+              changeNumArray.push(i + '_' + (Number(data[i]) + 1) % 10);
+            }
+          }
+          //增加小球
+          for (var i = 0; i < changeNumArray.length; i++) {
+            addBalls.apply(this, changeNumArray[i].split('_'));
+          }
+          data = NewData.concat();
+        }
+
+        /*更新小球状态*/
+        function updateBalls() {
+          for (var i = 0; i < balls.length; i++) {
+            balls[i].stepY += balls[i].disY;
+            balls[i].x += balls[i].stepX;
+            balls[i].y += balls[i].stepY;
+            if (balls[i].x > W + R || balls[i].y > H + R) {
+              balls.splice(i, 1);
+              i--;
+            }
+          }
+        }
+
+        /*增加要运动的小球*/
+        function addBalls(index, num) {
+          var numArray = [1, 2, 3];
+          var colorArray = ["#3BE", "#09C", "#A6C", "#93C", "#9C0", "#690", "#FB3", "#F80", "#F44", "#C00"];
+          for (var i = 0; i < digit[num].length; i++) {
+            for (var j = 0; j < digit[num][i].length; j++) {
+              if (digit[num][i][j] == 1) {
+                var ball = {
+                  x: 14 * (R + 2) * index + j * 2 * (R + 1) + (R + 1),
+                  y: i * 2 * (R + 1) + (R + 1),
+                  stepX: Math.floor(Math.random() * 4 - 2),
+                  stepY: -2 * numArray[Math.floor(Math.random() * numArray.length)],
+                  color: colorArray[Math.floor(Math.random() * colorArray.length)],
+                  disY: 1
+                };
+                balls.push(ball);
+              }
+            }
+          }
+        }
+
+        /*渲染*/
+        function render() {
+          //重置画布宽度，达到清空画布的效果
+          canvas.height = 100;
+          //渲染时钟
+          for (var i = 0; i < data.length; i++) {
+            renderDigit(i, data[i]);
+          }
+          //渲染小球
+          for (var i = 0; i < balls.length; i++) {
+            cxt.beginPath();
+            cxt.arc(balls[i].x, balls[i].y, R, 0, 2 * Math.PI);
+            cxt.fillStyle = balls[i].color;
+            cxt.closePath();
+            cxt.fill();
+          }
+        }
+
+        clearInterval(oTimer);
+        var oTimer = setInterval(function () {
+          //更新时钟
+          updateDigitTime();
+          //更新小球状态
+          updateBalls();
+          //渲染
+          render();
+        }, 50);
+      }
+    })();
+
+  </script>
+
+
+</div>
+
+      
+
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">awabuda</span>
+
+  
+</div>
+
+
+
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+  
+  
+
+
+
+  
+  
+
+
+
+  
+  
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_sphere.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item=>{
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: true,
+        notify: false,
+        appId: 'DBST5TYeCj1kQTDDNozqqYJ7-gzGzoHsz',
+        appKey: '3U5lXDpHXEHKjMOrQtSQSWk6',
+        placeholder: '请留下您宝贵的意见',
+        avatar:'wavatar',
+        guest_info:guest,
+        pageSize:'10' || 10,
+    });
+  </script>
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("DBST5TYeCj1kQTDDNozqqYJ7-gzGzoHsz", "3U5lXDpHXEHKjMOrQtSQSWk6");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof mermaid === 'undefined') return;
+      mermaid.initialize({
+        theme: 'default',
+        startOnLoad: true,
+        securityLevel: 'loose',
+        flowchart: { useMaxWidth: true, htmlLabels: true },
+        sequence: { useMaxWidth: true, htmlLabels: true }
+      });
+      mermaid.run({ querySelector: '.mermaid' });
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+  <script>
+  !function (e, t, a) { function n() { c(".heart{width: 10px;height: 10px;position: fixed;background: #f00;transform: rotate(45deg);-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);}.heart:after,.heart:before{content: '';width: inherit;height: inherit;background: inherit;border-radius: 50%;-webkit-border-radius: 50%;-moz-border-radius: 50%;position: fixed;}.heart:after{top: -5px;}.heart:before{left: -5px;}"), o(), r() } function r() { for (var e = 0; e < d.length; e++)d[e].alpha <= 0 ? (t.body.removeChild(d[e].el), d.splice(e, 1)) : (d[e].y-- , d[e].scale += .004, d[e].alpha -= .013, d[e].el.style.cssText = "left:" + d[e].x + "px;top:" + d[e].y + "px;opacity:" + d[e].alpha + ";transform:scale(" + d[e].scale + "," + d[e].scale + ") rotate(45deg);background:" + d[e].color + ";z-index:99999"); requestAnimationFrame(r) } function o() { var t = "function" == typeof e.onclick && e.onclick; e.onclick = function (e) { t && t(), i(e) } } function i(e) { var a = t.createElement("div"); a.className = "heart", d.push({ el: a, x: e.clientX - 5, y: e.clientY - 5, scale: 1, alpha: 1, color: s() }), t.body.appendChild(a) } function c(e) { var a = t.createElement("style"); a.type = "text/css"; try { a.appendChild(t.createTextNode(e)) } catch (t) { a.styleSheet.cssText = e } t.getElementsByTagName("head")[0].appendChild(a) } function s() { return "rgb(" + ~~(255 * Math.random()) + "," + ~~(255 * Math.random()) + "," + ~~(255 * Math.random()) + ")" } var d = []; e.requestAnimationFrame = function () { return e.requestAnimationFrame || e.webkitRequestAnimationFrame || e.mozRequestAnimationFrame || e.oRequestAnimationFrame || e.msRequestAnimationFrame || function (e) { setTimeout(e, 1e3 / 60) } }(), n() }(window, document);
+</script>
+</body>
+</html>

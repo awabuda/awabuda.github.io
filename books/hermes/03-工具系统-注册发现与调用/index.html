@@ -1,0 +1,1943 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+  
+
+<link href="//cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="js,node,小程序,ts" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="三、工具系统：注册、发现与调用Hermes 的工具系统基于一个简单但强大的设计原则：工具就是”**副作用导入**”——import 一个模块，工具就自动注册好了。没有集中式的工具配置文件，没有显式的初始化调用，一切在模块加载时自动完成。 这意味着添加一个新工具只需要创建一个文件，在文件末尾调用 registry.register()，然后在 model_tools.py 的导入列表里加一行。仅此而">
+<meta property="og:type" content="website">
+<meta property="og:title" content="三、工具系统-注册发现与调用">
+<meta property="og:url" content="http://yoursite.com/books/hermes/03-%E5%B7%A5%E5%85%B7%E7%B3%BB%E7%BB%9F-%E6%B3%A8%E5%86%8C%E5%8F%91%E7%8E%B0%E4%B8%8E%E8%B0%83%E7%94%A8/index.html">
+<meta property="og:site_name" content="悟凌斋">
+<meta property="og:description" content="三、工具系统：注册、发现与调用Hermes 的工具系统基于一个简单但强大的设计原则：工具就是”**副作用导入**”——import 一个模块，工具就自动注册好了。没有集中式的工具配置文件，没有显式的初始化调用，一切在模块加载时自动完成。 这意味着添加一个新工具只需要创建一个文件，在文件末尾调用 registry.register()，然后在 model_tools.py 的导入列表里加一行。仅此而">
+<meta property="article:published_time" content="2026-05-25T11:54:56.076Z">
+<meta property="article:modified_time" content="2026-05-25T11:54:56.076Z">
+<meta property="article:author" content="awabuda">
+<meta property="article:tag" content="博客">
+<meta property="article:tag" content="js">
+<meta property="article:tag" content="前端">
+<meta property="article:tag" content="node">
+<meta property="article:tag" content="vue">
+<meta property="article:tag" content="react">
+<meta property="article:tag" content="koa">
+<meta property="article:tag" content="算法">
+<meta property="article:tag" content="css">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/books/hermes/03-工具系统-注册发现与调用/"/>
+
+
+
+
+
+  <title>三、工具系统-注册发现与调用 | 悟凌斋</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?b376e3ef6e386ad73d4f7661ebfc0d25";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">悟凌斋</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">一行代码翘起整个前端</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+	<h2 class="post-title" itemprop="name headline">三、工具系统-注册发现与调用</h2>
+
+
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+        
+          <h1 id="三、工具系统：注册、发现与调用"><a href="#三、工具系统：注册、发现与调用" class="headerlink" title="三、工具系统：注册、发现与调用"></a>三、工具系统：注册、发现与调用</h1><p>Hermes 的工具系统基于一个简单但强大的设计原则：<strong>工具就是”**</strong>副作用导入<strong>**”——import 一个模块，工具就自动注册好了</strong>。没有集中式的工具配置文件，没有显式的初始化调用，一切在模块加载时自动完成。</p>
+<p>这意味着添加一个新工具只需要创建一个文件，在文件末尾调用 <code>registry.register()</code>，然后在 <code>model_tools.py</code> 的导入列表里加一行。仅此而已。</p>
+<h2 id="工具注册：副作用导入模式"><a href="#工具注册：副作用导入模式" class="headerlink" title="工具注册：副作用导入模式"></a>工具注册：副作用导入模式</h2><p>一个标准工具文件的结构非常简单——<strong>逻辑函数在前，注册代码在底部</strong>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tools/my_tool.py</span></span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">from</span> tools.registry <span class="keyword">import</span> registry  <span class="comment"># ← 导入全局单例</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">analyze_performance</span><span class="params">(file_path: str, task_id: str = None)</span> -&gt; str:</span></span><br><span class="line">    <span class="string">"""工具实现，必须返回 JSON 字符串"""</span></span><br><span class="line">    <span class="comment"># ... 实际逻辑 ...</span></span><br><span class="line">    <span class="keyword">return</span> json.dumps(&#123;<span class="string">"result"</span>: <span class="string">"..."</span>&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># ─────────────── 模块级注册（import 时自动执行）───────────────</span></span><br><span class="line">registry.register(</span><br><span class="line">    name=<span class="string">"analyze_performance"</span>,   <span class="comment"># LLM 调用时使用的名称</span></span><br><span class="line">    toolset=<span class="string">"analysis"</span>,           <span class="comment"># 工具集分组</span></span><br><span class="line">    schema=&#123;                      <span class="comment"># OpenAI function calling 格式</span></span><br><span class="line">        <span class="string">"name"</span>: <span class="string">"analyze_performance"</span>,</span><br><span class="line">        <span class="string">"description"</span>: <span class="string">"分析 Python 文件的性能热点"</span>,</span><br><span class="line">        <span class="string">"parameters"</span>: &#123;</span><br><span class="line">            <span class="string">"type"</span>: <span class="string">"object"</span>,</span><br><span class="line">            <span class="string">"properties"</span>: &#123;</span><br><span class="line">                <span class="string">"file_path"</span>: &#123;<span class="string">"type"</span>: <span class="string">"string"</span>, <span class="string">"description"</span>: <span class="string">"文件路径"</span>&#125;</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="string">"required"</span>: [<span class="string">"file_path"</span>]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    handler=<span class="keyword">lambda</span> args, **kw: analyze_performance(</span><br><span class="line">        file_path=args.get(<span class="string">"file_path"</span>, <span class="string">""</span>),</span><br><span class="line">        task_id=kw.get(<span class="string">"task_id"</span>)</span><br><span class="line">    ),</span><br><span class="line">    check_fn=<span class="literal">None</span>,                <span class="comment"># None = 始终可用</span></span><br><span class="line">    requires_env=[],</span><br><span class="line">    max_result_size_chars=<span class="number">50</span>_000,</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h3 id="ToolRegistry-数据结构"><a href="#ToolRegistry-数据结构" class="headerlink" title="ToolRegistry 数据结构"></a>ToolRegistry 数据结构</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">ToolRegistry（全局单例）</span><br><span class="line">│</span><br><span class="line">├── _tools: Dict[str, ToolEntry]</span><br><span class="line">│   ├── &quot;read_file&quot;     → ToolEntry(schema, handler, check_fn, ...)</span><br><span class="line">│   ├── &quot;web_search&quot;    → ToolEntry(schema, handler, check_fn&#x3D;需要TAVILY_KEY, ...)</span><br><span class="line">│   ├── &quot;terminal&quot;      → ToolEntry(schema, handler, ...)</span><br><span class="line">│   ├── &quot;memory&quot;        → ToolEntry(schema, handler, ...)</span><br><span class="line">│   └── ... （共 60+ 个工具）</span><br><span class="line">│</span><br><span class="line">└── _toolset_checks: Dict[str, Callable]</span><br><span class="line">    ├── &quot;web&quot;    → lambda: bool(os.getenv(&quot;TAVILY_API_KEY&quot;))</span><br><span class="line">    ├── &quot;browser&quot;→ lambda: bool(os.getenv(&quot;BROWSERBASE_API_KEY&quot;))</span><br><span class="line">    └── ...</span><br></pre></td></tr></table></figure>
+
+<h2 id="工具的完整生命周期"><a href="#工具的完整生命周期" class="headerlink" title="工具的完整生命周期"></a>工具的完整生命周期</h2><pre class="mermaid">
+flowchart TD
+    subgraph A["注册阶段（进程启动时，一次性）"]
+        A1["model_tools.py 模块被 import"] --> A2["_discover_tools() 立即执行"]
+        A2 --> A3["逐一 import 20 个工具模块"]
+        A3 --> A4["每个模块底部的 registry.register() 自动执行"]
+        A4 --> A5["ToolRegistry 单例收集所有 ToolEntry"]
+        A2 --> A6["discover_mcp_tools() 连接 MCP 服务器\n动态注册外部工具"]
+        A2 --> A7["discover_plugins() 加载用户/项目插件工具"]
+    end
+
+    subgraph B["过滤阶段（AIAgent 初始化时）"]
+        B1["get_tool_definitions(\n  enabled_toolsets,\n  disabled_toolsets\n)"] --> B2["解析 toolset 配置\n确定 tools_to_include 集合"]
+        B2 --> B3["对每个工具执行 check_fn()\n检查运行时可用性"]
+        B3 --> B4["通过 → 加入 filtered_tools\n失败 → 跳过（logger.debug，终端不显示）"]
+        B4 --> B5["返回 OpenAI 格式 tool schemas\n作为 tools 参数传给 LLM"]
+    end
+
+    subgraph C["调用阶段（ReAct 循环中）"]
+        C1["LLM 返回 tool_calls"] --> C2["_execute_tool_calls()"]
+        C2 --> C3a["① 工具名校验：_repair_tool_call()"]
+        C3a --> C3b["② JSON 参数合法性校验"]
+        C3b --> C3c["③ Post-call guardrails\n_cap_delegate + _deduplicate"]
+        C3c --> C4["_should_parallelize_tool_batch()\n并行 or 串行判断"]
+        C4 --> C5["_invoke_tool(name, args, task_id)"]
+        C5 --> C6["handle_function_call()\nregistry.dispatch()"]
+        C6 --> C7["entry.handler(args, task_id=task_id)"]
+        C7 --> C8["返回 JSON 字符串"]
+        C8 --> C9["大输出 3 层保护后追加到 messages"]
+    end
+
+    A --> B --> C
+</pre>
+
+
+<p><strong>enabled_toolsets / disabled_toolsets 由谁决定、在哪里配置</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">整个系统有三个层次来决定最终哪些 toolset 被启用：</span><br><span class="line">1. 持久化配置：~&#x2F;.hermes&#x2F;config.yaml → platform_toolsets</span><br><span class="line">这是最主要的持久配置来源，通过以下两种方式写入：</span><br><span class="line">方式 A：交互式 TUI —— hermes tools</span><br><span class="line">hermes tools enable web       # 命令行直接启用某toolset（默认 cli平台）</span><br><span class="line">hermes tools disable terminal # 命令行直接禁用</span><br><span class="line">hermes tools enable github:create_issue  # MCP 工具用server:tool 格式</span><br><span class="line">hermes tools list --platform telegram# 查看某平台的状态</span><br><span class="line">配置写入 config.yaml 结构如下：</span><br><span class="line"></span><br><span class="line">Apply</span><br><span class="line">platform_toolsets:</span><br><span class="line">  cli:</span><br><span class="line">    - web</span><br><span class="line">    - terminal</span><br><span class="line">    - file</span><br><span class="line">    - memory</span><br><span class="line">    - delegation</span><br><span class="line">    # ...telegram:</span><br><span class="line">    - web</span><br><span class="line">    - memory</span><br><span class="line">每个平台独立维护一份列表，cli &#x2F; telegram &#x2F; discord 等各自独立。</span><br><span class="line">2. 运行时参数：CLI 命令行 -t &#x2F; --toolsets</span><br><span class="line">临时覆盖，只对本次会话生效，不写入 config</span><br><span class="line">hermes chat -t web,terminal &quot;帮我搜索...&quot;</span><br><span class="line">hermes chat --toolsets &quot;web,file,memory&quot; &quot;任务...&quot;</span><br><span class="line">3. 代码内硬编码：特殊用途Agent</span><br><span class="line">某些内部Agent 直接在代码里写死 toolset，不走配置：</span><br></pre></td></tr></table></figure>
+
+<h2 id="工具过滤：按场景只暴露所需工具"><a href="#工具过滤：按场景只暴露所需工具" class="headerlink" title="工具过滤：按场景只暴露所需工具"></a>工具过滤：按场景只暴露所需工具</h2><p>不同平台、不同场景需要不同的工具集。<code>get_tool_definitions()</code> 根据配置过滤，确保 LLM 只看到它实际可用的工具（减少幻觉，降低 token 消耗）：</p>
+<pre class="mermaid">
+flowchart TD
+    A["get_tool_definitions(\n  enabled_toolsets=['core','web'],\n  disabled_toolsets=['browser']\n)"] --> B{有 enabled_toolsets?}
+
+    B -->|有| C["resolve_toolset('core') → 展开工具名列表\nresolve_toolset('web') → 展开工具名列表\ntools_to_include = 两者并集"]
+    B -->|无| D["tools_to_include = 所有工具"]
+
+    C --> E{有 disabled_toolsets?}
+    D --> E
+
+    E -->|有| F["tools_to_include -= resolve_toolset('browser')"]
+    E -->|无| G
+
+    F --> G["registry.get_definitions(tools_to_include)"]
+
+    G --> H["遍历每个工具执行 check_fn()"]
+    H --> I{check_fn 通过?}
+    I -->|通过| J["加入结果：OpenAI schema"]
+    I -->|失败| K["跳过（logger.debug 级别，终端不显示）"]
+
+    J --> L["返回 tool schemas 列表\n直接传给 LLM 的 tools 参数"]
+    K --> L
+</pre>
+
+
+<h3 id="工具集分层"><a href="#工具集分层" class="headerlink" title="工具集分层"></a>工具集分层</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">工具集结构：</span><br><span class="line"></span><br><span class="line">核心工具（_HERMES_CORE_TOOLS，所有平台默认启用）</span><br><span class="line">  文件：read_file &#x2F; write_file &#x2F; patch &#x2F; search_files</span><br><span class="line">  执行：terminal</span><br><span class="line">  网络：web_search &#x2F; web_extract</span><br><span class="line">  记忆：memory &#x2F; session_search</span><br><span class="line">  技能：skill_manage &#x2F; skill_view &#x2F; skills_list</span><br><span class="line">  协作：delegate_task</span><br><span class="line">  浏览器：browser_navigate &#x2F; browser_snapshot &#x2F; ...（含 check_fn，需 API Key 才实际生效）</span><br><span class="line">  辅助：todo &#x2F; vision_analyze &#x2F; execute_code &#x2F; clarify &#x2F; ...</span><br><span class="line"></span><br><span class="line">check_fn 限制工具（toolset 各有归属，check_fn 失败时跳过）</span><br><span class="line">  browser_navigate   → toolset&#x3D;browser，需要 BROWSERBASE_API_KEY</span><br><span class="line">  execute_code       → toolset&#x3D;code_execution，需要 MODAL_TOKEN_ID 或本地沙箱</span><br><span class="line">  web_search (Tavily)→ toolset&#x3D;web，需要 TAVILY_API_KEY</span><br><span class="line"></span><br><span class="line">MCP 动态工具（连接外部 MCP 服务器时懒加载）</span><br><span class="line">  由 mcp_tool.py 在运行时动态注入 registry</span><br><span class="line">  工具名格式：&lt;server_name&gt;__&lt;tool_name&gt;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><p><code>_HERMES_CORE_TOOLS</code> 是 CLI 平台默认启用的<strong>工具名列表</strong>，不代表这些工具的 <code>toolset</code> 字段都叫 <code>core</code>。例如 <code>execute_code</code> 的 toolset 是 <code>code_execution</code>，<code>browser_navigate</code> 的 toolset 是 <code>browser</code>。<code>check_fn</code> 失败时该工具会被跳过，跳过日志为 <code>logger.debug</code> 级别，正常运行时终端不可见。</p>
+</blockquote>
+<hr>
+<h2 id="工具调用：从-LLM-输出到执行结果"><a href="#工具调用：从-LLM-输出到执行结果" class="headerlink" title="工具调用：从 LLM 输出到执行结果"></a>工具调用：从 LLM 输出到执行结果</h2><pre class="mermaid">
+flowchart TD
+    A["LLM 返回\ntool_calls = [{name:'read_file', args:{path:'app.py'}},\n              {name:'web_search', args:{query:'cProfile'}}]"]
+
+    A --> B1["① 工具名校验：_repair_tool_call()\n'rea_file' → 'read_file' 模糊修正"]
+    B1 --> B2["② JSON 参数合法性校验\n失败→注入错误结果重试（最多3次）"]
+    B2 --> B3["③ Post-call guardrails\n_cap_delegate_task_calls(截断同批次中过多的子agent调用)\n_deduplicate_tool_calls(去除完全相同的重复调用 工具名+参数完全一致)"]
+
+    B3 --> C{"并行判断\n_should_parallelize_tool_batch()"}
+    C -->|"全是 _PARALLEL_SAFE_TOOLS 白名单工具\n或 write/patch 路径不冲突"| D["ThreadPoolExecutor\nmin(工具数, 8) 个 worker 并行执行"]
+    C -->|"含 clarify / JSON解析失败\n/ 其他非白名单工具"| E["顺序串行执行"]
+
+    D --> F["每个工具：_invoke_tool(name, args, task_id)"]
+    E --> F
+
+    F --> G{是 Agent 内部工具?}
+    G -->|"todo / memory / session_search\nclarify / delegate_task"| H["直接内部处理\n需要 Agent 级状态（不经过 registry）"]
+    G -->|普通工具| I["handle_function_call(name, args, task_id)"]
+
+    I --> J["registry.dispatch(name, args, task_id)"]
+    J --> K["entry.handler(args, task_id=task_id)"]
+    K --> L["返回 JSON 字符串"]
+
+    L --> M["大输出 3 层保护\n① 工具内部预截断\n② maybe_persist_tool_result() 单结果持久化\n③ enforce_turn_budget() 轮次聚合溢出"]
+    M --> N["追加到 messages:\n{'role':'tool','content':结果,'tool_call_id':'tc1'}"]
+</pre>
+
+
+<h3 id="并行判断规则"><a href="#并行判断规则" class="headerlink" title="并行判断规则"></a>并行判断规则</h3><table>
+<thead>
+<tr>
+<th>条件</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>批次只有 1 个工具</td>
+<td>串行</td>
+</tr>
+<tr>
+<td>含 <code>clarify</code></td>
+<td>强制串行</td>
+</tr>
+<tr>
+<td>JSON 参数解析失败（args 非合法 JSON）</td>
+<td>强制串行</td>
+</tr>
+<tr>
+<td>全是 <code>_PARALLEL_SAFE_TOOLS</code> 白名单工具（<code>read_file</code>/<code>web_search</code>/<code>web_extract</code>/<code>vision_analyze</code>/<code>session_search</code>/<code>skill_view</code>/<code>skills_list</code>/<code>ha_*</code> 等）</td>
+<td>并行（线程数 = min(工具数, 8)）</td>
+</tr>
+<tr>
+<td><code>write_file</code>/<code>patch</code>，且目标路径互不重叠</td>
+<td>并行</td>
+</tr>
+<tr>
+<td>其他工具（不在白名单且不是路径作用域工具）</td>
+<td>串行</td>
+</tr>
+</tbody></table>
+<h3 id="Agent-内部工具（不经过-registry）"><a href="#Agent-内部工具（不经过-registry）" class="headerlink" title="Agent 内部工具（不经过 registry）"></a>Agent 内部工具（不经过 registry）</h3><p><code>_invoke_tool()</code> 在调用 <code>handle_function_call()</code> 前，会先拦截以下工具直接处理（因为它们依赖 Agent 级状态）：</p>
+<ul>
+<li><code>todo</code> — 需要 <code>TodoStore</code> 实例</li>
+<li><code>memory</code> — 需要 <code>MemoryStore</code> 实例</li>
+<li><code>session_search</code> — 需要 <code>SessionDB</code> 实例</li>
+<li><code>clarify</code> — 需要 <code>clarify_callback</code> 回调</li>
+<li><code>delegate_task</code> — 需要 <code>parent_agent</code> 引用</li>
+<li>memory_manager 插件工具 — 需要 <code>MemoryManager</code> 实例</li>
+</ul>
+<p>只有这些都不匹配时，才转发到 <code>handle_function_call()</code> → <code>registry.dispatch()</code>。</p>
+<h4 id="run-async-的使用者：注册了-is-async-True-的工具"><a href="#run-async-的使用者：注册了-is-async-True-的工具" class="headerlink" title="_run_async() 的使用者：注册了 is_async=True 的工具"></a><code>_run_async()</code> 的使用者：注册了 <code>is_async=True</code> 的工具</h4><p><code>_run_async()</code> 不是通用桥接——它<strong>只服务于 handler 本身是 **`</strong>async def<strong>`</strong> 的工具**。注册时声明 <code>is_async=True</code>，<code>registry.dispatch()</code> 会自动调用它。目前只有 4 类工具使用：<code>vision_analyze</code>（httpx 异步请求）、<code>web_extract</code>（并发抓取多 URL）、<code>mixture_of_agents</code>（并发调用多 LLM）、RL 训练工具 × 10（Atropos 异步环境）。</p>
+<blockquote>
+<h2 id="MCP-工具注册时-is-async-False-：MCP-有自己专属后台-event-loop（-mcp-loop），handler-内部通过-run-on-mcp-loop-自行处理-async，对外暴露同步接口，不需要-run-async-。"><a href="#MCP-工具注册时-is-async-False-：MCP-有自己专属后台-event-loop（-mcp-loop），handler-内部通过-run-on-mcp-loop-自行处理-async，对外暴露同步接口，不需要-run-async-。" class="headerlink" title="MCP 工具注册时 **`is_async=False**：MCP 有自己专属后台 event loop（_mcp_loop），handler 内部通过_run_on_mcp_loop()自行处理 async，对外暴露同步接口，不需要_run_async()`。"></a><strong>MCP 工具注册时 **`</strong>is_async=False**<code>：MCP 有自己专属后台 event loop（</code>_mcp_loop<code>），handler 内部通过</code>_run_on_mcp_loop()<code>自行处理 async，对外暴露同步接口，不需要</code>_run_async()`。</h2></blockquote>
+<h2 id="工具结果的大输出保护"><a href="#工具结果的大输出保护" class="headerlink" title="工具结果的大输出保护"></a>工具结果的大输出保护</h2><p>工具可能返回巨大的内容（如读取一个 1MB 的文件），直接塞入 messages 会使上下文爆炸。Hermes 采用 <strong>3 层保护机制</strong>（<code>registry.dispatch()</code> 本身不做截断）：</p>
+<table>
+<thead>
+<tr>
+<th>层次</th>
+<th>触发位置</th>
+<th>机制</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>第 1 层</td>
+<td>工具内部</td>
+<td>各工具自己在返回前预截断（如 <code>search_files</code>）注册时有配置项<strong>max_result_size_chars</strong></td>
+</tr>
+<tr>
+<td>第 2 层</td>
+<td><code>maybe_persist_tool_result()</code></td>
+<td>单个结果超过工具注册的 <code>max_result_size_chars</code> 阈值 → 全文写入沙箱临时文件，context 里只留摘要 + 文件路径（模型可用 <code>read_file</code> 读全文）</td>
+</tr>
+<tr>
+<td>第 3 层</td>
+<td><code>enforce_turn_budget()</code></td>
+<td>同一轮所有工具结果合计超过 200K chars → 把最大的未持久化结果溢出到磁盘</td>
+</tr>
+</tbody></table>
+<p>这套机制比简单截断更友好：<strong>内容不丢失，模型可以主动读取完整结果</strong>。</p>
+<p>常见工具的 <code>max_result_size_chars</code> 参考值：</p>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>max_result_size_chars</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>read_file</code></td>
+<td>200,000</td>
+<td>约 50K tokens</td>
+</tr>
+<tr>
+<td><code>web_extract</code></td>
+<td>100,000</td>
+<td>网页内容可能很长</td>
+</tr>
+<tr>
+<td><code>terminal</code></td>
+<td>50,000</td>
+<td>命令输出</td>
+</tr>
+<tr>
+<td><code>web_search</code></td>
+<td>20,000</td>
+<td>搜索结果摘要</td>
+</tr>
+</tbody></table>
+<hr>
+<h4 id="CLI-vs-Gateway：为什么-event-loop-的存在与否不同？"><a href="#CLI-vs-Gateway：为什么-event-loop-的存在与否不同？" class="headerlink" title="CLI vs Gateway：为什么 event loop 的存在与否不同？"></a>CLI vs Gateway：为什么 event loop 的存在与否不同？</h4><p><strong>根本原因在于程序入口</strong>——CLI 以同步 <code>main()</code> 启动，进程里没有 event loop；Gateway 以 <code>asyncio.run(start_gateway())</code> 启动，整个进程在一个持续运行的 loop 中。这决定了 <code>_run_async()</code> 走不同的分支。</p>
+<h5 id="CLI-路径：主线程直接阻塞（无新线程）"><a href="#CLI-路径：主线程直接阻塞（无新线程）" class="headerlink" title="CLI 路径：主线程直接阻塞（无新线程）"></a>CLI 路径：主线程直接阻塞（无新线程）</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">用户输入消息</span><br><span class="line">    └── HermesCLI.run()  [主线程，同步，无 running loop]</span><br><span class="line">            └── agent.run_conversation()</span><br><span class="line">                    └── registry.dispatch(&quot;vision_analyze&quot;)  → is_async&#x3D;True</span><br><span class="line">                            └── _run_async(coro)</span><br><span class="line">                                    ├── get_running_loop() → RuntimeError → loop&#x3D;None</span><br><span class="line">                                    └── _get_tool_loop().run_until_complete(coro)</span><br><span class="line">                                            ▼  主线程阻塞，无超时限制</span><br><span class="line">                                        返回 JSON → 追加到 messages，继续</span><br></pre></td></tr></table></figure>
+
+<h5 id="Gateway-路径：两层线程嵌套"><a href="#Gateway-路径：两层线程嵌套" class="headerlink" title="Gateway 路径：两层线程嵌套"></a>Gateway 路径：两层线程嵌套</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">消息平台推送消息</span><br><span class="line">    └── async def _handle_message()  [Gateway 主 loop，持续运行]</span><br><span class="line">            └── await loop.run_in_executor(None, run_sync)</span><br><span class="line">                    │  ← 第1层：把同步 Agent 推入线程池，不阻塞主 loop</span><br><span class="line">                    └── [worker 线程] run_sync() → agent.run_conversation()</span><br><span class="line">                            └── registry.dispatch(&quot;vision_analyze&quot;)  → is_async&#x3D;True</span><br><span class="line">                                    └── _run_async(coro)</span><br><span class="line">                                            ├── get_running_loop() → 拿到 Gateway 主 loop</span><br><span class="line">                                            └── 第2层：新线程 asyncio.run(coro)</span><br><span class="line">                                                future.result(timeout&#x3D;300)</span><br><span class="line">                                                    ▼  worker 线程阻塞 ≤300s</span><br><span class="line">                                                返回 JSON</span><br></pre></td></tr></table></figure>
+
+<p>两层线程的必要性：第 1 层（<code>run_in_executor</code>）防止 Agent 同步阻塞 Gateway 主 loop；第 2 层（<code>_run_async</code> 新线程）规避”在 running loop 里调 <code>run_until_complete</code> 会报 RuntimeError”的 Python 限制。CLI 无 running loop，直接 <code>run_until_complete()</code> 即可，无需新线程。</p>
+<h2 id="MCP-工具：连接外部服务器的动态工具"><a href="#MCP-工具：连接外部服务器的动态工具" class="headerlink" title="MCP 工具：连接外部服务器的动态工具"></a>MCP 工具：连接外部服务器的动态工具</h2><p>MCP（Model Context Protocol）是 Hermes 的”开放接口”——任何符合 MCP 协议的外部服务器（文件系统、GitHub、数据库等）都可以把它的工具动态注入到 Hermes，让 LLM 像调用内置工具一样调用它们。</p>
+<p>配置极简，只需在 <code>~/.hermes/config.yaml</code> 里声明服务器：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">mcp_servers:</span></span><br><span class="line">  <span class="attr">filesystem:</span></span><br><span class="line">    <span class="attr">command:</span> <span class="string">"npx"</span></span><br><span class="line">    <span class="attr">args:</span> <span class="string">["-y",</span> <span class="string">"@modelcontextprotocol/server-filesystem"</span><span class="string">,</span> <span class="string">"/tmp"</span><span class="string">]</span></span><br><span class="line">  <span class="attr">github:</span></span><br><span class="line">    <span class="attr">url:</span> <span class="string">"https://my-mcp-server.example.com/mcp"</span></span><br><span class="line">    <span class="attr">headers:</span></span><br><span class="line">      <span class="attr">Authorization:</span> <span class="string">"Bearer sk-..."</span></span><br><span class="line">    <span class="attr">timeout:</span> <span class="number">180</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="MCP-工具的存储位置"><a href="#MCP-工具的存储位置" class="headerlink" title="MCP 工具的存储位置"></a>MCP 工具的存储位置</h3><p>MCP 工具<strong>不以文件形式存储</strong>，全部在进程内存中，分三层：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">内存层 1：mcp_tool.py 顶层全局变量</span><br><span class="line">  _servers: Dict[str, MCPServerTask]   # 每个 server 的连接对象</span><br><span class="line">  _mcp_loop: asyncio.EventLoop         # 后台专用 event loop（daemon 线程）</span><br><span class="line">  _stdio_pids: set                     # stdio 子进程 PID（用于强制 kill）</span><br><span class="line"></span><br><span class="line">内存层 2：MCPServerTask 对象（每个 server 一个）</span><br><span class="line">  .name          → server 名称（如 &quot;github&quot;）</span><br><span class="line">  .session       → MCP ClientSession（连接句柄）</span><br><span class="line">  ._tools        → 原始 MCP 工具列表（SDK 对象）</span><br><span class="line">  ._registered_tool_names → 已注册到 registry 的工具名列表</span><br><span class="line">  ._config       → 该 server 的配置字典</span><br><span class="line">  ._sampling     → SamplingHandler（server 主动发起 LLM 请求的处理器）</span><br><span class="line"></span><br><span class="line">内存层 3：中央 ToolRegistry（与内置工具共享）</span><br><span class="line">  registry._tools[&quot;mcp_github_list_issues&quot;] &#x3D; ToolEntry(</span><br><span class="line">      toolset&#x3D;&quot;mcp-github&quot;,           # 格式：mcp-&#123;server_name&#125;</span><br><span class="line">      schema&#x3D;&#123;...&#125;,                   # MCP schema → OpenAI 格式转换</span><br><span class="line">      handler&#x3D;&lt;closure&gt;,              # 封装 session.call_tool() 的 sync 函数</span><br><span class="line">      check_fn&#x3D;&lt;closure&gt;,             # 检查 _servers[server_name] 是否在线</span><br><span class="line">  )</span><br></pre></td></tr></table></figure>
+
+<h3 id="MCP-工具完整生命周期"><a href="#MCP-工具完整生命周期" class="headerlink" title="MCP 工具完整生命周期"></a>MCP 工具完整生命周期</h3><pre class="mermaid">
+  flowchart TD
+    subgraph STARTUP["启动阶段（model_tools.py 被 import 时，一次性）"]
+        S1["discover_mcp_tools()"] --> S2["读取 ~/.hermes/config.yaml\n中的 mcp_servers"]
+        S2 --> S3["_ensure_mcp_loop()\n创建后台 daemon 线程 + asyncio event loop"]
+        S3 --> S4["并行调用每个 server 的\n_discover_and_register_server()"]
+        S4 --> S5["_connect_server()\n创建 MCPServerTask，调用 server.start()"]
+        S5 --> S6["内部启动 asyncio.Task: server.run()\n建立 stdio/HTTP 连接，MCP 握手"]
+        S6 --> S7["ClientSession.initialize()\n_discover_tools() → list_tools()"]
+        S7 --> S8["_ready.set() 通知调用方\n准备好了"]
+        S8 --> S9["await _shutdown_event.wait()\n长期阻塞，保持连接存活"]
+        S5 --> S10["_register_server_tools()\n工具名转换：mcp_{server}_{tool}\n碰撞检查 + registry.register() × N\n注入 hermes-* toolset"]
+    end
+
+    subgraph CALL["调用阶段（ReAct 循环中）"]
+        C1["LLM 调用 mcp_github_list_issues"] --> C2["_make_tool_handler 返回的 closure 被调用"]
+        C2 --> C3["从 _servers 取出 MCPServerTask"]
+        C3 --> C4["run_coroutine_threadsafe(\n  session.call_tool(...), _mcp_loop\n)"]
+        C4 --> C5["阻塞等待结果\n（最长 tool_timeout 秒，默认 120s）"]
+        C5 --> C6["返回 JSON 字符串给 Agent"]
+    end
+
+    subgraph HOT["热更新（server 发送 notifications/tools/list_changed）"]
+        H1["_refresh_tools()"] --> H2["批量 deregister 旧工具"]
+        H2 --> H3["list_tools() 获取新工具列表"]
+        H3 --> H4["批量 register 新工具\n更新 hermes-* toolset"]
+        H4 --> H5["下一轮 API 调用时\nLLM 看到新工具 schema"]
+    end
+
+    subgraph SHUTDOWN["关闭阶段（进程退出 或 /mcp reload）"]
+        D1["shutdown_mcp_servers()"] --> D2["并行对每个 server 调用 server.shutdown()"]
+        D2 --> D3["_shutdown_event.set()\n唤醒 run() 里的 wait()"]
+        D3 --> D4["asyncio.Task 退出 async-with 块\nstdio 进程被 SDK 终止"]
+        D4 --> D5["_stop_mcp_loop()\nstop loop → join thread → close loop"]
+        D5 --> D6["_kill_orphaned_mcp_children()\nSIGKILL 未正常退出的 stdio 子进程"]
+    end
+
+    STARTUP --> CALL
+    CALL --> HOT
+    CALL --> SHUTDOWN
+</pre>
+
+
+<h3 id="MCP-关键设计细节"><a href="#MCP-关键设计细节" class="headerlink" title="MCP 关键设计细节"></a>MCP 关键设计细节</h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>实现方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>线程安全</td>
+<td><code>_lock</code>（threading.Lock）保护 <code>_servers</code>/<code>_mcp_loop</code>/<code>_stdio_pids</code> 的所有读写</td>
+</tr>
+<tr>
+<td>异步隔离</td>
+<td>专用后台 event loop（非主线程），通过 <code>run_coroutine_threadsafe()</code> 跨线程调用</td>
+</tr>
+<tr>
+<td>断线重连</td>
+<td>指数退避，最多 5 次，最长间隔 60s；第一次连接失败直接报错，不重试</td>
+</tr>
+<tr>
+<td>安全过滤</td>
+<td>stdio 子进程仅传白名单环境变量（PATH/HOME 等），防止泄露 API key</td>
+</tr>
+<tr>
+<td>凭证脱敏</td>
+<td>返回 LLM 的错误消息中，token/key/password 等凭证替换为 <code>[REDACTED]</code></td>
+</tr>
+<tr>
+<td>工具幂等</td>
+<td><code>discover_mcp_tools()</code> 是幂等的——已连接的 server 跳过，只连新增的</td>
+</tr>
+<tr>
+<td>热重载</td>
+<td>CLI <code>/mcp reload</code> 命令：先 <code>shutdown_mcp_servers()</code>，再 <code>discover_mcp_tools()</code>，最后刷新 <code>agent.tools</code></td>
+</tr>
+</tbody></table>
+<blockquote>
+<h2 id="工具命名规则"><a href="#工具命名规则" class="headerlink" title="工具命名规则"></a>工具命名规则</h2><p>MCP 工具名格式为 <code>mcp_{server_name}_{tool_name}</code>，连字符和点替换为下划线。例如：server <code>filesystem</code>，tool <code>read_file</code> → <code>mcp_filesystem_read_file</code>；server <code>my-api</code>，tool <code>fetch.data</code> → <code>mcp_my_api_fetch_data</code>。</p>
+</blockquote>
+<p>以下内容暂时先不关注，因为作者当前还未了解如何实现一个plugin，源码相关内容暂未验证</p>
+<h2 id="Plugin-系统：用户可扩展的工具与生命周期钩子"><a href="#Plugin-系统：用户可扩展的工具与生命周期钩子" class="headerlink" title="Plugin 系统：用户可扩展的工具与生命周期钩子"></a>Plugin 系统：用户可扩展的工具与生命周期钩子</h2><p>Plugin 系统是 Hermes 的用户扩展机制。与 MCP”连接外部服务器”不同，Plugin 是<strong>本地 Python 代码</strong>，可以注册新工具、注册生命周期钩子回调，甚至注入新的 CLI 子命令。</p>
+<h3 id="Plugin-的三种来源"><a href="#Plugin-的三种来源" class="headerlink" title="Plugin 的三种来源"></a>Plugin 的三种来源</h3><table>
+<thead>
+<tr>
+<th>来源</th>
+<th>目录</th>
+<th>启用方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>用户 Plugin</td>
+<td><code>~/.hermes/plugins/&lt;name&gt;/</code></td>
+<td>目录存在即生效</td>
+</tr>
+<tr>
+<td>项目 Plugin</td>
+<td><code>./.hermes/plugins/&lt;name&gt;/</code></td>
+<td>需设置 <code>HERMES_ENABLE_PROJECT_PLUGINS=1</code></td>
+</tr>
+<tr>
+<td>Pip Plugin</td>
+<td>Python 包 entry-point <code>hermes_agent.plugins</code></td>
+<td><code>pip install</code> 后自动发现</td>
+</tr>
+</tbody></table>
+<p>每个目录型 Plugin 必须包含：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">~&#x2F;.hermes&#x2F;plugins&#x2F;my-plugin&#x2F;</span><br><span class="line">  ├── plugin.yaml       # 清单：name, version, description, provides_tools, provides_hooks</span><br><span class="line">  └── __init__.py       # 必须包含 register(ctx) 函数</span><br></pre></td></tr></table></figure>
+
+<h3 id="Plugin-完整生命周期"><a href="#Plugin-完整生命周期" class="headerlink" title="Plugin 完整生命周期"></a>Plugin 完整生命周期</h3><pre class="mermaid">
+flowchart TD
+    subgraph DISC["发现阶段（model_tools.py 导入时，discover_plugins() 被调用）"]
+        D1["discover_plugins()\n= get_plugin_manager().discover_and_load()"] --> D2["扫描用户目录\n~/.hermes/plugins/"]
+        D2 --> D3["扫描项目目录\n./.hermes/plugins/\n（需 HERMES_ENABLE_PROJECT_PLUGINS）"]
+        D3 --> D4["扫描 entry-point\nimportlib.metadata → hermes_agent.plugins 组"]
+        D4 --> D5["从 config.yaml 读取\nplugins.disabled 黑名单"]
+        D5 --> D6{在黑名单中?}
+        D6 -->|是| D7["LoadedPlugin(enabled=False)\nerror='disabled via config'"]
+        D6 -->|否| D8["_load_plugin(manifest)"]
+    end
+
+    subgraph LOAD["加载阶段"]
+        L1["importlib.util 动态 import\n__init__.py\n模块名：hermes_plugins.{name}"] --> L2["getattr(module, 'register')\n获取 register(ctx) 函数"]
+        L2 --> L3{"有 register()?"}
+        L3 -->|无| L4["loaded.error='no register() function'\nenabled=False"]
+        L3 -->|有| L5["PluginContext(manifest, manager)\n创建上下文 facade"]
+        L5 --> L6["register(ctx) 被调用\nPlugin 自行调用 ctx.register_tool()\n和 ctx.register_hook()"]
+        L6 --> L7["loaded.enabled=True\n记录 tools_registered / hooks_registered"]
+    end
+
+    subgraph REG["注册阶段（register(ctx) 内部）"]
+        R1["ctx.register_tool(name, toolset, schema, handler, ...)"] --> R2["tools.registry.register()\nPlugin 工具进入全局 ToolRegistry\n（与内置工具平级）"]
+        R2 --> R3["manager._plugin_tool_names.add(name)\n追踪插件提供的工具"]
+        R4["ctx.register_hook(hook_name, callback)"] --> R5["manager._hooks[hook_name].append(callback)\n钩子回调入队列"]
+        R6["ctx.register_cli_command(name, ...)"] --> R7["manager._cli_commands[name] = {...}\nCLI 子命令注册"]
+    end
+
+    subgraph HOOK["钩子触发阶段（Agent 运行时）"]
+        H1["invoke_hook('pre_llm_call', ...)"] --> H2["遍历 _hooks['pre_llm_call'] 里的所有回调"]
+        H2 --> H3["每个 callback 独立 try/except\n一个失败不影响其他"]
+        H3 --> H4["pre_llm_call 返回的 context 字符串\n注入到当前轮的 user message\n（不修改 system prompt，保护 prompt cache）"]
+    end
+
+    DISC --> LOAD --> REG
+    REG --> HOOK
+</pre>
+
+
+<h3 id="Plugin-可注册的生命周期钩子"><a href="#Plugin-可注册的生命周期钩子" class="headerlink" title="Plugin 可注册的生命周期钩子"></a>Plugin 可注册的生命周期钩子</h3><table>
+<thead>
+<tr>
+<th>钩子名</th>
+<th>触发时机</th>
+<th>典型用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>pre_tool_call</code></td>
+<td>工具调用前</td>
+<td>记录审计日志、参数校验</td>
+</tr>
+<tr>
+<td><code>post_tool_call</code></td>
+<td>工具调用后</td>
+<td>结果过滤、统计 metrics</td>
+</tr>
+<tr>
+<td><code>pre_llm_call</code></td>
+<td>每次调用 LLM 前</td>
+<td>注入动态上下文（记忆召回），返回值会追加到 user message</td>
+</tr>
+<tr>
+<td><code>post_llm_call</code></td>
+<td>LLM 返回后</td>
+<td>响应后处理、计费统计</td>
+</tr>
+<tr>
+<td><code>on_session_start</code></td>
+<td>会话开始时</td>
+<td>初始化会话级状态、加载用户配置</td>
+</tr>
+<tr>
+<td><code>on_session_end</code></td>
+<td>会话结束时</td>
+<td>清理资源、保存摘要</td>
+</tr>
+<tr>
+<td><code>on_session_finalize</code></td>
+<td>会话持久化完成后</td>
+<td>向外部系统同步会话数据</td>
+</tr>
+<tr>
+<td><code>on_session_reset</code></td>
+<td>会话被重置（/reset）时</td>
+<td>清空插件维护的会话级缓存</td>
+</tr>
+</tbody></table>
+<p>Plugin 示例（最小可用结构）：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ~/.hermes/plugins/my-memory/plugin.yaml</span></span><br><span class="line"><span class="comment"># name: my-memory</span></span><br><span class="line"><span class="comment"># version: "1.0"</span></span><br><span class="line"><span class="comment"># description: "Custom memory recall plugin"</span></span><br><span class="line"><span class="comment"># provides_hooks: [pre_llm_call]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ~/.hermes/plugins/my-memory/__init__.py</span></span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">register</span><span class="params">(ctx)</span>:</span></span><br><span class="line">    <span class="string">"""Plugin 入口，ctx 是 PluginContext facade"""</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 注册工具</span></span><br><span class="line">    ctx.register_tool(</span><br><span class="line">        name=<span class="string">"my_recall"</span>,</span><br><span class="line">        toolset=<span class="string">"memory"</span>,</span><br><span class="line">        schema=&#123;</span><br><span class="line">            <span class="string">"name"</span>: <span class="string">"my_recall"</span>,</span><br><span class="line">            <span class="string">"description"</span>: <span class="string">"从自定义知识库召回相关内容"</span>,</span><br><span class="line">            <span class="string">"parameters"</span>: &#123;<span class="string">"type"</span>: <span class="string">"object"</span>, <span class="string">"properties"</span>: &#123;</span><br><span class="line">                <span class="string">"query"</span>: &#123;<span class="string">"type"</span>: <span class="string">"string"</span>&#125;</span><br><span class="line">            &#125;, <span class="string">"required"</span>: [<span class="string">"query"</span>]&#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        handler=<span class="keyword">lambda</span> args, **kw: json.dumps(&#123;<span class="string">"result"</span>: <span class="string">"...recalled..."</span>&#125;),</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 注册生命周期钩子</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">on_pre_llm</span><span class="params">(messages=None, **kwargs)</span>:</span></span><br><span class="line">        <span class="comment"># 返回字符串 → 注入到 user message（不改 system prompt，保护 prompt cache）</span></span><br><span class="line">        <span class="keyword">return</span> <span class="string">"相关背景：用户上次提到..."</span></span><br><span class="line"></span><br><span class="line">    ctx.register_hook(<span class="string">"pre_llm_call"</span>, on_pre_llm)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<h2 id="重要：钩子注入不破坏-Prompt-Cache"><a href="#重要：钩子注入不破坏-Prompt-Cache" class="headerlink" title="重要：钩子注入不破坏 Prompt Cache"></a>重要：钩子注入不破坏 Prompt Cache</h2><p><code>pre_llm_call</code> 钩子的返回值只注入到 <strong>user message</strong>，永远不修改 system prompt。这是刻意设计：system prompt 在会话内冻结，修改它会导致 Anthropic prompt cache 失效，大幅增加 API 成本。所有插件提供的动态上下文都是临时的，不持久化到 session DB。</p>
+</blockquote>
+<h3 id="MCP-vs-Plugin：功能对比"><a href="#MCP-vs-Plugin：功能对比" class="headerlink" title="MCP vs Plugin：功能对比"></a>MCP vs Plugin：功能对比</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>MCP 工具</th>
+<th>Plugin 工具</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>实现语言</td>
+<td>任意（Node.js、Python、Go…）</td>
+<td>仅 Python</td>
+</tr>
+<tr>
+<td>运行位置</td>
+<td>独立进程或远程 HTTP</td>
+<td>同进程内</td>
+</tr>
+<tr>
+<td>连接方式</td>
+<td>stdio 管道 或 HTTP 长连接</td>
+<td>直接函数调用</td>
+</tr>
+<tr>
+<td>生命周期钩子</td>
+<td>不支持</td>
+<td>支持（8 个钩子点）</td>
+</tr>
+<tr>
+<td>热更新</td>
+<td><code>notifications/tools/list_changed</code> 动态刷新</td>
+<td>不支持（需重启进程）</td>
+</tr>
+<tr>
+<td>CLI 命令注册</td>
+<td>不支持</td>
+<td>支持（<code>ctx.register_cli_command</code>）</td>
+</tr>
+<tr>
+<td>消息注入</td>
+<td>不支持</td>
+<td>支持（<code>ctx.inject_message</code>，可从外部触发对话）</td>
+</tr>
+<tr>
+<td>适合场景</td>
+<td>集成已有服务（文件系统、GitHub、数据库）</td>
+<td>扩展 Agent 行为（记忆、审计、自定义工具）</td>
+</tr>
+</tbody></table>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+    
+    
+
+    
+      
+<div class="post-nav book-nav">
+  
+    <div class="post-nav-prev post-nav-item">
+      <a href="/books/hermes/02-Agent核心实现/" rel="prev" title="二、Agent核心实现">
+        <span class="post-nav-direction">上一章</span>
+        <span class="post-nav-title">二、Agent核心实现</span>
+        <i class="fa fa-chevron-left"></i>
+      </a>
+    </div>
+  
+
+  
+    <div class="post-nav-next post-nav-item">
+      <a href="/books/hermes/04-技能系统-注册发现与调用/" rel="next" title="四、技能系统-注册发现与调用">
+        <span class="post-nav-direction">下一篇</span>
+        <span class="post-nav-title">四、技能系统-注册发现与调用</span>
+        <i class="fa fa-chevron-right"></i>
+      </a>
+    </div>
+  
+</div>
+
+
+    
+
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+     
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.gif"
+                alt="awabuda" />
+            
+              <p class="site-author-name" itemprop="name">awabuda</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/awabuda" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i></a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:awabdua@163.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i></a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#三、工具系统：注册、发现与调用"><span class="nav-number">1.</span> <span class="nav-text">三、工具系统：注册、发现与调用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#工具注册：副作用导入模式"><span class="nav-number">1.1.</span> <span class="nav-text">工具注册：副作用导入模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ToolRegistry-数据结构"><span class="nav-number">1.1.1.</span> <span class="nav-text">ToolRegistry 数据结构</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#工具的完整生命周期"><span class="nav-number">1.2.</span> <span class="nav-text">工具的完整生命周期</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#工具过滤：按场景只暴露所需工具"><span class="nav-number">1.3.</span> <span class="nav-text">工具过滤：按场景只暴露所需工具</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#工具集分层"><span class="nav-number">1.3.1.</span> <span class="nav-text">工具集分层</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注意"><span class="nav-number">1.4.</span> <span class="nav-text">注意</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#工具调用：从-LLM-输出到执行结果"><span class="nav-number">1.5.</span> <span class="nav-text">工具调用：从 LLM 输出到执行结果</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#并行判断规则"><span class="nav-number">1.5.1.</span> <span class="nav-text">并行判断规则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Agent-内部工具（不经过-registry）"><span class="nav-number">1.5.2.</span> <span class="nav-text">Agent 内部工具（不经过 registry）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#run-async-的使用者：注册了-is-async-True-的工具"><span class="nav-number">1.5.2.1.</span> <span class="nav-text">_run_async() 的使用者：注册了 is_async&#x3D;True 的工具</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MCP-工具注册时-is-async-False-：MCP-有自己专属后台-event-loop（-mcp-loop），handler-内部通过-run-on-mcp-loop-自行处理-async，对外暴露同步接口，不需要-run-async-。"><span class="nav-number">1.6.</span> <span class="nav-text">MCP 工具注册时 **&#96;is_async&#x3D;False**：MCP 有自己专属后台 event loop（_mcp_loop），handler 内部通过_run_on_mcp_loop()自行处理 async，对外暴露同步接口，不需要_run_async()&#96;。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#工具结果的大输出保护"><span class="nav-number">1.7.</span> <span class="nav-text">工具结果的大输出保护</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#CLI-vs-Gateway：为什么-event-loop-的存在与否不同？"><span class="nav-number">1.7.0.1.</span> <span class="nav-text">CLI vs Gateway：为什么 event loop 的存在与否不同？</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#CLI-路径：主线程直接阻塞（无新线程）"><span class="nav-number">1.7.0.1.1.</span> <span class="nav-text">CLI 路径：主线程直接阻塞（无新线程）</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Gateway-路径：两层线程嵌套"><span class="nav-number">1.7.0.1.2.</span> <span class="nav-text">Gateway 路径：两层线程嵌套</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MCP-工具：连接外部服务器的动态工具"><span class="nav-number">1.8.</span> <span class="nav-text">MCP 工具：连接外部服务器的动态工具</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MCP-工具的存储位置"><span class="nav-number">1.8.1.</span> <span class="nav-text">MCP 工具的存储位置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MCP-工具完整生命周期"><span class="nav-number">1.8.2.</span> <span class="nav-text">MCP 工具完整生命周期</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MCP-关键设计细节"><span class="nav-number">1.8.3.</span> <span class="nav-text">MCP 关键设计细节</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#工具命名规则"><span class="nav-number">1.9.</span> <span class="nav-text">工具命名规则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Plugin-系统：用户可扩展的工具与生命周期钩子"><span class="nav-number">1.10.</span> <span class="nav-text">Plugin 系统：用户可扩展的工具与生命周期钩子</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Plugin-的三种来源"><span class="nav-number">1.10.1.</span> <span class="nav-text">Plugin 的三种来源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Plugin-完整生命周期"><span class="nav-number">1.10.2.</span> <span class="nav-text">Plugin 完整生命周期</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Plugin-可注册的生命周期钩子"><span class="nav-number">1.10.3.</span> <span class="nav-text">Plugin 可注册的生命周期钩子</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#重要：钩子注入不破坏-Prompt-Cache"><span class="nav-number">1.11.</span> <span class="nav-text">重要：钩子注入不破坏 Prompt Cache</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MCP-vs-Plugin：功能对比"><span class="nav-number">1.11.1.</span> <span class="nav-text">MCP vs Plugin：功能对比</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+      
+        <div>
+  <canvas id="canvasDiyBlock" style="width:60%;">当前浏览器不支持canvas，请更换浏览器后再试</canvas>
+  <script>
+    (function () {
+
+      var digit = [
+        [
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 1, 1, 0, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 0, 1, 1, 0],
+          [0, 0, 1, 1, 1, 0, 0]
+        ], //0
+        [
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 1, 1, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [1, 1, 1, 1, 1, 1, 1]
+        ], //1
+        [
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 1, 1, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 1, 1, 1, 1, 1]
+        ], //2
+        [
+          [1, 1, 1, 1, 1, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //3
+        [
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 1, 0],
+          [0, 0, 1, 1, 1, 1, 0],
+          [0, 1, 1, 0, 1, 1, 0],
+          [1, 1, 0, 0, 1, 1, 0],
+          [1, 1, 1, 1, 1, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 1, 1]
+        ], //4
+        [
+          [1, 1, 1, 1, 1, 1, 1],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 1, 1, 1, 1, 0],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //5
+        [
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 1, 1, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 0, 0],
+          [1, 1, 0, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //6
+        [
+          [1, 1, 1, 1, 1, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 1, 1, 0, 0, 0]
+        ], //7
+        [
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 1, 1, 0]
+        ], //8
+        [
+          [0, 1, 1, 1, 1, 1, 0],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [1, 1, 0, 0, 0, 1, 1],
+          [0, 1, 1, 1, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1, 1, 0],
+          [0, 0, 0, 1, 1, 0, 0],
+          [0, 1, 1, 0, 0, 0, 0]
+        ], //9
+        [
+          [0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 1, 1, 1, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0]
+        ] //:
+      ];
+
+      var canvas = document.getElementById('canvasDiyBlock');
+      if (canvas.getContext) {
+        var cxt = canvas.getContext('2d');
+        //声明canvas的宽高
+        var H = 100,
+          W = 700;
+        canvas.height = H;
+        canvas.width = W;
+        cxt.fillStyle = '#f00';
+        cxt.fillRect(10, 10, 50, 50);
+
+        //存储时间数据
+        var data = [];
+        //存储运动的小球
+        var balls = [];
+        //设置粒子半径
+        var R = canvas.height / 20 - 1;
+        (function () {
+          var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+          //存储时间数字，由十位小时、个位小时、冒号、十位分钟、个位分钟、冒号、十位秒钟、个位秒钟这7个数字组成
+          data.push(temp[1], temp[2], 10, temp[3], temp[4], 10, temp[5], temp[6]);
+        })();
+
+        /*生成点阵数字*/
+        function renderDigit(index, num) {
+          for (var i = 0; i < digit[num].length; i++) {
+            for (var j = 0; j < digit[num][i].length; j++) {
+              if (digit[num][i][j] == 1) {
+                cxt.beginPath();
+                cxt.arc(14 * (R + 2) * index + j * 2 * (R + 1) + (R + 1), i * 2 * (R + 1) + (R + 1), R, 0, 2 * Math
+                  .PI);
+                cxt.closePath();
+                cxt.fill();
+              }
+            }
+          }
+        }
+
+        /*更新时钟*/
+        function updateDigitTime() {
+          var changeNumArray = [];
+          var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+          var NewData = [];
+          NewData.push(temp[1], temp[2], 10, temp[3], temp[4], 10, temp[5], temp[6]);
+          for (var i = data.length - 1; i >= 0; i--) {
+            //时间发生变化
+            if (NewData[i] !== data[i]) {
+              //将变化的数字值和在data数组中的索引存储在changeNumArray数组中
+              changeNumArray.push(i + '_' + (Number(data[i]) + 1) % 10);
+            }
+          }
+          //增加小球
+          for (var i = 0; i < changeNumArray.length; i++) {
+            addBalls.apply(this, changeNumArray[i].split('_'));
+          }
+          data = NewData.concat();
+        }
+
+        /*更新小球状态*/
+        function updateBalls() {
+          for (var i = 0; i < balls.length; i++) {
+            balls[i].stepY += balls[i].disY;
+            balls[i].x += balls[i].stepX;
+            balls[i].y += balls[i].stepY;
+            if (balls[i].x > W + R || balls[i].y > H + R) {
+              balls.splice(i, 1);
+              i--;
+            }
+          }
+        }
+
+        /*增加要运动的小球*/
+        function addBalls(index, num) {
+          var numArray = [1, 2, 3];
+          var colorArray = ["#3BE", "#09C", "#A6C", "#93C", "#9C0", "#690", "#FB3", "#F80", "#F44", "#C00"];
+          for (var i = 0; i < digit[num].length; i++) {
+            for (var j = 0; j < digit[num][i].length; j++) {
+              if (digit[num][i][j] == 1) {
+                var ball = {
+                  x: 14 * (R + 2) * index + j * 2 * (R + 1) + (R + 1),
+                  y: i * 2 * (R + 1) + (R + 1),
+                  stepX: Math.floor(Math.random() * 4 - 2),
+                  stepY: -2 * numArray[Math.floor(Math.random() * numArray.length)],
+                  color: colorArray[Math.floor(Math.random() * colorArray.length)],
+                  disY: 1
+                };
+                balls.push(ball);
+              }
+            }
+          }
+        }
+
+        /*渲染*/
+        function render() {
+          //重置画布宽度，达到清空画布的效果
+          canvas.height = 100;
+          //渲染时钟
+          for (var i = 0; i < data.length; i++) {
+            renderDigit(i, data[i]);
+          }
+          //渲染小球
+          for (var i = 0; i < balls.length; i++) {
+            cxt.beginPath();
+            cxt.arc(balls[i].x, balls[i].y, R, 0, 2 * Math.PI);
+            cxt.fillStyle = balls[i].color;
+            cxt.closePath();
+            cxt.fill();
+          }
+        }
+
+        clearInterval(oTimer);
+        var oTimer = setInterval(function () {
+          //更新时钟
+          updateDigitTime();
+          //更新小球状态
+          updateBalls();
+          //渲染
+          render();
+        }, 50);
+      }
+    })();
+
+  </script>
+
+
+</div>
+
+      
+
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">awabuda</span>
+
+  
+</div>
+
+
+
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+  
+  
+
+
+
+  
+  
+
+
+
+  
+  
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_sphere.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item=>{
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: true,
+        notify: false,
+        appId: 'DBST5TYeCj1kQTDDNozqqYJ7-gzGzoHsz',
+        appKey: '3U5lXDpHXEHKjMOrQtSQSWk6',
+        placeholder: '请留下您宝贵的意见',
+        avatar:'wavatar',
+        guest_info:guest,
+        pageSize:'10' || 10,
+    });
+  </script>
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("DBST5TYeCj1kQTDDNozqqYJ7-gzGzoHsz", "3U5lXDpHXEHKjMOrQtSQSWk6");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof mermaid === 'undefined') return;
+      mermaid.initialize({
+        theme: 'default',
+        startOnLoad: true,
+        securityLevel: 'loose',
+        flowchart: { useMaxWidth: true, htmlLabels: true },
+        sequence: { useMaxWidth: true, htmlLabels: true }
+      });
+      mermaid.run({ querySelector: '.mermaid' });
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+  <script>
+  !function (e, t, a) { function n() { c(".heart{width: 10px;height: 10px;position: fixed;background: #f00;transform: rotate(45deg);-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);}.heart:after,.heart:before{content: '';width: inherit;height: inherit;background: inherit;border-radius: 50%;-webkit-border-radius: 50%;-moz-border-radius: 50%;position: fixed;}.heart:after{top: -5px;}.heart:before{left: -5px;}"), o(), r() } function r() { for (var e = 0; e < d.length; e++)d[e].alpha <= 0 ? (t.body.removeChild(d[e].el), d.splice(e, 1)) : (d[e].y-- , d[e].scale += .004, d[e].alpha -= .013, d[e].el.style.cssText = "left:" + d[e].x + "px;top:" + d[e].y + "px;opacity:" + d[e].alpha + ";transform:scale(" + d[e].scale + "," + d[e].scale + ") rotate(45deg);background:" + d[e].color + ";z-index:99999"); requestAnimationFrame(r) } function o() { var t = "function" == typeof e.onclick && e.onclick; e.onclick = function (e) { t && t(), i(e) } } function i(e) { var a = t.createElement("div"); a.className = "heart", d.push({ el: a, x: e.clientX - 5, y: e.clientY - 5, scale: 1, alpha: 1, color: s() }), t.body.appendChild(a) } function c(e) { var a = t.createElement("style"); a.type = "text/css"; try { a.appendChild(t.createTextNode(e)) } catch (t) { a.styleSheet.cssText = e } t.getElementsByTagName("head")[0].appendChild(a) } function s() { return "rgb(" + ~~(255 * Math.random()) + "," + ~~(255 * Math.random()) + "," + ~~(255 * Math.random()) + ")" } var d = []; e.requestAnimationFrame = function () { return e.requestAnimationFrame || e.webkitRequestAnimationFrame || e.mozRequestAnimationFrame || e.oRequestAnimationFrame || e.msRequestAnimationFrame || function (e) { setTimeout(e, 1e3 / 60) } }(), n() }(window, document);
+</script>
+</body>
+</html>
